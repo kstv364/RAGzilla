@@ -18,13 +18,7 @@ else:
 
 def generate_answer(query, context):
     prompt = f"""
-You are a technical writer assistant. Use the context to draft a Medium-style article section that explains the topic clearly, thoroughly, and with a human tone.
-
-The tone should be articulate, confident, slightly personal, and grounded in real technical insight. Avoid fluff — be practical, sharp, and helpful.
-
-Use active voice. Prefer clarity over cleverness. It's okay to be a bit opinionated if it helps the reader.
-
-Use emojis sparingly to enhance the tone, but don't overdo it. Use them where they add warmth or emphasis, not as a crutch.
+You are an expert research assistant. You are given the following information, and you must answer the question based on it.
 
 Context:
 {context}

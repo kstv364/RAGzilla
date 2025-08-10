@@ -1,7 +1,8 @@
 import gradio as gr
 import requests
 
-API_BASE = "http://localhost:8000"
+import os
+API_BASE = os.getenv("API_BASE", "http://localhost:8000")
 
 def upload_pdf(file, collection_name_input, add_to_kb):
     if file is None:

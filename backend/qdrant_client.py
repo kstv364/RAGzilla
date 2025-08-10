@@ -8,10 +8,13 @@ logger = logging.getLogger(__name__)
 
 _qdrant_clients = {}
 
+import os # Added os import
 def get_qdrant_client(collection_name: str = "docs"):
     if collection_name not in _qdrant_clients:
         logger.info(f"Initializing Qdrant client for collection: {collection_name}")
-        client = QdrantClient(host="localhost", port=6333)
+        qdrant_host = os.getenv("QDRANT_HOST", "localhost")
+        qdrant_port = int(os.getenv("QDRANT_PORT", 6333))
+        client = QdrantClient(host=qdrant_host, port=qdrant_port)
         
         # Check if collection exists, if not, create it
         collections = client.get_collections().collections

@@ -1,0 +1,39 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: frontend
+  labels:
+    app: frontend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: frontend
+  template:
+    metadata:
+      labels:
+        app: frontend
+    spec:
+      containers:
+      - name: frontend
+        image: your-dockerhub-username/rag-frontend:latest # Replace with your Docker Hub image
+        ports:
+        - containerPort: 7860
+        env:
+        - name: API_BASE
+          value: "http://backend-service:8000" # Kubernetes service name for backend
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: frontend-service
+  labels:
+    app: frontend
+spec:
+  selector:
+    app: frontend
+  ports:
+    - protocol: TCP
+      port: 7860
+      targetPort: 7860
+  type: LoadBalancer # Use LoadBalancer to expose frontend externally

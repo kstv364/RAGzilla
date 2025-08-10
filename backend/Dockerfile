@@ -5,7 +5,7 @@ FROM python:3.9-slim-buster
 RUN pip install uv
 
 # Set the working directory in the container
-WORKDIR /app
+WORKDIR /app/backend
 
 # Copy the requirements file and install dependencies using uv
 COPY requirements.txt .
@@ -14,6 +14,7 @@ RUN uv pip install --system --no-cache-dir -r requirements.txt
 # Copy the rest of the application code
 COPY . .
 
+WORKDIR /app/
 # Expose the port FastAPI runs on
 EXPOSE 8000
 

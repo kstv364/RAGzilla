@@ -19,7 +19,8 @@ services:
       # These should match the service names in docker-compose
       QDRANT_HOST: qdrant
       QDRANT_PORT: 6333
-      GEMINI_API_KEY: ${GEMINI_API_KEY} # Read from .env file
+    env_file: 
+      - ../.env # Read from .env file
     depends_on:
       - qdrant
     restart: unless-stopped

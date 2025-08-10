@@ -83,6 +83,8 @@ def ingest_youtube(youtube_url: str, collection_name: str = "docs"):
         return {"error": str(e)}
     
     if transcript_text:
-        return ingest_data(transcript_text, youtube_url, collection_name)
+        ingestion_result = ingest_data(transcript_text, youtube_url, collection_name)
+        ingestion_result["transcript_text"] = transcript_text # Add transcript text to the result
+        return ingestion_result
     else:
         return {"error": "Could not retrieve YouTube transcript."}

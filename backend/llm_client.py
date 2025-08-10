@@ -53,3 +53,36 @@ Write a clear and solid explanation or answer to this prompt:
     with open("output.md", "w", encoding='utf-8') as f:
       f.write(llm_output)
     return {"answer": llm_output}
+
+def summarize_text(text):
+    prompt = f"""
+Please provide a concise summary of the following text.
+
+Text:
+{text}
+"""
+    
+    use_gemini = os.getenv("USE_GEMINI", "true").lower() == "true"
+
+    llm_output = "No summary found"
+
+    if use_gemini and GEMINI_API_KEY:
+        print("Using Gemini API for summarization")
+        try:
+            model = genai.GenerativeModel('gemini-2.5-flash')
+            response = model.generate_content(prompt)
+            llm_output = response.text
+        except Exception as e:
+            logger.error(f"Gemini API error during summarization: {e}. Falling back to Ollama.")
+            use_gemini = False # Fallback if Gemini fails
+    
+    if not use_gemini:
+        print("Falling back to Ollama for summarization")
+        result = subprocess.run(
+            ["ollama", "run", "llama3", prompt],
+            capture_output=True,
+            text=True
+        )
+        llm_output = result.stdout.strip()
+
+    return {"summary": llm_output}

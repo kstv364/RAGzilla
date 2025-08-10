@@ -1,6 +1,7 @@
 from fastapi import FastAPI, UploadFile, File, Form
 from backend.ingest import ingest_pdf, ingest_youtube
 from backend.rag import answer_query
+from backend.llm_client import summarize_text
 from fastapi.middleware.cors import CORSMiddleware
 from typing import Optional
 from dotenv import load_dotenv
@@ -30,7 +31,12 @@ async def ingest_pdf_route(file: UploadFile = File(...), collection_name: Option
 
 @app.post("/ingest-youtube")
 async def ingest_youtube_route(youtube_url: str = Form(...), collection_name: Optional[str] = Form("docs")):
-    return ingest_youtube(youtube_url, collection_name)
+    ingestion_result = ingest_youtube(youtube_url, collection_name)
+    if "transcript_text" in ingestion_result:
+        transcript_text = ingestion_result["transcript_text"]
+        summary_result = summarize_text(transcript_text)
+        ingestion_result["summary"] = summary_result.get("summary", "Could not generate summary.")
+    return ingestion_result
 
 @app.get("/ask")
 async def ask(query: str, collection_name: Optional[str] = "docs"):

@@ -12,7 +12,9 @@ def upload_pdf(file, collection_name_input, add_to_kb):
 def ingest_youtube_video(youtube_url, collection_name_input, add_to_kb):
     collection_name = collection_name_input if add_to_kb else "temp_docs"
     response = requests.post(f"{API_BASE}/ingest-youtube", data={"youtube_url": youtube_url, "collection_name": collection_name})
-    return response.json()
+    result = response.json()
+    summary = result.get("summary", "No summary available.")
+    return result, summary
 
 def ask_question(question, collection_name_input):
     collection_name = collection_name_input if collection_name_input else "docs" # Default to 'docs' for general Q&A
@@ -40,7 +42,10 @@ youtube_ingest_interface = gr.Interface(
         gr.Textbox(label="Knowledge Base Name (e.g., my_youtube_kb)", value="youtube_docs"),
         gr.Checkbox(label="Add to Knowledge Base (persistent)", value=True)
     ],
-    outputs=gr.JSON(label="Ingest Result"),
+    outputs=[
+        gr.JSON(label="Ingest Result"),
+        gr.Markdown(label="Video Summary")
+    ],
     title="YouTube Ingest"
 )
 

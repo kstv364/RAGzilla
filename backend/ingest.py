@@ -98,7 +98,6 @@ def ingest_youtube(youtube_url: str, collection_name: str = "docs"):
     
     if transcript_text:
         ingestion_result = ingest_data(transcript_text, youtube_url, collection_name)
-        ingestion_result["transcript_text"] = transcript_text # Ensure transcript_text is still passed
         ingestion_result["video_title"] = video_title # Add video_title to the result
         return ingestion_result
     else:

@@ -41,5 +41,5 @@ async def ingest_youtube_route(youtube_url: str = Form(...), collection_name: Op
     return ingestion_result
 
 @app.get("/ask")
-async def ask(query: str, collection_name: Optional[str] = "docs"):
+async def ask(query: str, collection_name: Optional[str] = "temp_docs"):
     return answer_query(query, collection_name)

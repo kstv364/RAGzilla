@@ -1,0 +1,10 @@
+fastapi
+uvicorn
+sentence-transformers
+PyPDF2
+qdrant-client
+gradio
+python-multipart
+google-generativeai
+python-dotenv
+youtube-transcript-api

@@ -76,4 +76,4 @@ app = gr.TabbedInterface(
 
 if __name__ == "__main__":
     GRADIO_PORT = int(os.getenv("GRADIO_PORT", 7860))
-    app.launch(server_port=GRADIO_PORT, server_name="0.0.0.0")
+    app.launch(server_port=GRADIO_PORT, server_name="0.0.0.0", share=True)

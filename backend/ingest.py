@@ -6,6 +6,7 @@ import io
 from urllib.parse import urlparse, parse_qs
 from youtube_transcript_api import YouTubeTranscriptApi, NoTranscriptFound, TranscriptsDisabled
 import logging
+import requests # Added requests for fetching video title
 
 # Configure logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -61,13 +62,26 @@ def ingest_youtube(youtube_url: str, collection_name: str = "docs"):
         if not video_id:
             return {"error": "Could not extract video ID from YouTube URL."}
 
-
+        video_title = ""
+        try:
+            oembed_url = f"https://www.youtube.com/oembed?url=https://www.youtube.com/watch?v={video_id}&format=json"
+            response = requests.get(oembed_url)
+            response.raise_for_status() # Raise an exception for HTTP errors
+            video_info = response.json()
+            video_title = video_info.get("title", "")
+            if video_title:
+                logger.info(f"Retrieved video title: {video_title}")
+        except requests.exceptions.RequestException as e:
+            logger.warning(f"Could not retrieve video title for {video_id}: {e}")
+        except Exception as e:
+            logger.warning(f"Error parsing video info for {video_id}: {e}")
         
         try:
             # Try to get transcript in English or Hindi
             transcript_list = YouTubeTranscriptApi().fetch(video_id, languages=['en', 'hi'])
             transcript_text = " ".join([item.text for item in transcript_list])
-            print(transcript_text)
+            if video_title:
+                transcript_text = f"Title: {video_title}. " + transcript_text
         except NoTranscriptFound:
             logger.info(f"No transcript found for video ID: {video_id} in specified languages.")
             return {"error": "No transcript found for this video in English or Hindi."}
@@ -84,7 +98,8 @@ def ingest_youtube(youtube_url: str, collection_name: str = "docs"):
     
     if transcript_text:
         ingestion_result = ingest_data(transcript_text, youtube_url, collection_name)
-        ingestion_result["transcript_text"] = transcript_text # Add transcript text to the result
+        ingestion_result["transcript_text"] = transcript_text # Ensure transcript_text is still passed
+        ingestion_result["video_title"] = video_title # Add video_title to the result
         return ingestion_result
     else:
         return {"error": "Could not retrieve YouTube transcript."}

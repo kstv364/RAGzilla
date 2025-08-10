@@ -54,7 +54,7 @@ Write a clear and solid explanation or answer to this prompt:
       f.write(llm_output)
     return {"answer": llm_output}
 
-def summarize_text(text):
+def summarize_text(text, video_title=""):
     prompt = f"""
 You are an expert academic content creator tasked with converting a one-way lecture transcript into comprehensive, exam-ready study material. The lecture is pre-recorded, so the transcript is a monologue.
 
@@ -74,10 +74,9 @@ Break down complex concepts into smaller, digestible points.
 
 After each section, create a Quick Revision – Flash Points list with only the most crucial facts from that section.
 
-Keep the name of the file without the redundant bits in the heading of your response
-
 The final output should read like a complete, structured study guide that can be used without listening to the lecture again.
 
+{"Video Title: " + video_title if video_title else ""}
 Transcript:
 {text}
 """
@@ -105,4 +104,21 @@ Transcript:
         )
         llm_output = result.stdout.strip()
 
-    return {"summary": llm_output}
+    # Write summary to a .md file
+    import uuid
+    import re
+    if video_title:
+        # Sanitize title for filename
+        filename = re.sub(r'[^\w\s-]', '', video_title).strip().replace(' ', '_')
+        if not filename: # Fallback if title becomes empty after sanitization
+            filename = str(uuid.uuid4())
+    else:
+        filename = str(uuid.uuid4())
+    
+    file_path = f"summaries/{filename}.md"
+    os.makedirs("summaries", exist_ok=True) # Ensure 'summaries' directory exists
+    with open(file_path, "w", encoding='utf-8') as f:
+        f.write(llm_output)
+    logger.info(f"Summary saved to {file_path}")
+
+    return {"summary": llm_output, "summary_file": file_path}

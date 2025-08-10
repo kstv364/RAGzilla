@@ -21,7 +21,7 @@ def ingest_youtube_video(youtube_url, collection_name_input, add_to_kb):
     collection_name = collection_name_input if add_to_kb else "temp_docs"
     response = requests.post(f"{API_BASE}/ingest-youtube", data={"youtube_url": youtube_url, "collection_name": collection_name})
     result = response.json()
-    summary = result.get("summary", "No summary available.")
+    summary = result.pop("summary", "No summary available.") # Remove summary from result JSON
     return result, summary
 
 def ask_question(question, collection_name_input):

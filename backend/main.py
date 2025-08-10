@@ -38,6 +38,7 @@ async def ingest_youtube_route(youtube_url: str = Form(...), collection_name: Op
         summary_result = summarize_text(transcript_text, video_title)
         ingestion_result["summary"] = summary_result.get("summary", "Could not generate summary.")
         ingestion_result["summary_file"] = summary_result.get("summary_file", "")
+    ingestion_result.pop("transcript_text")
     return ingestion_result
 
 @app.get("/ask")

@@ -1,6 +1,9 @@
 # Use a Python base image
 FROM python:3.9-slim-buster
 
+# Install uv
+RUN pip install uv
+
 # Set the working directory in the container
 WORKDIR /app/frontend
 
@@ -8,8 +11,8 @@ WORKDIR /app/frontend
 # It's better to have a separate requirements.txt for frontend if dependencies differ
 # For simplicity, I'll assume it uses the main requirements.txt for now.
 # In a real-world scenario, you'd have frontend/requirements.txt
-COPY backend/requirements.txt /app/requirements.txt
-RUN pip install --no-cache-dir -r /app/requirements.txt
+COPY requirements.txt /app/requirements.txt
+RUN uv pip install --system --no-cache-dir -r /app/requirements.txt
 
 # Copy the frontend application code
 COPY . .

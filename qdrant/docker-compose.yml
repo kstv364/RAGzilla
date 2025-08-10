@@ -1,10 +1,42 @@
 version: '3.8'
 services:
   qdrant:
-    image: qdrant/qdrant
+    image: qdrant/qdrant:latest
     ports:
       - "6333:6333"
+      - "6334:6334" # Expose REST API port for potential debugging/management
     volumes:
       - qdrant_storage:/qdrant/storage
+    restart: unless-stopped
+
+  backend:
+    build:
+      context: ../backend # Path to the backend Dockerfile
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    environment:
+      # These should match the service names in docker-compose
+      QDRANT_HOST: qdrant
+      QDRANT_PORT: 6333
+      GEMINI_API_KEY: ${GEMINI_API_KEY} # Read from .env file
+    depends_on:
+      - qdrant
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ../frontend # Path to the frontend Dockerfile
+      dockerfile: Dockerfile
+    ports:
+      - "7860:7860" # Default port, can be overridden by GRADIO_PORT env var
+    environment:
+      # This should match the service name in docker-compose
+      API_BASE: http://backend:8000
+      GRADIO_PORT: 7860 # Make Gradio port configurable via environment variable
+    depends_on:
+      - backend
+    restart: unless-stopped
+
 volumes:
   qdrant_storage:

@@ -56,9 +56,29 @@ Write a clear and solid explanation or answer to this prompt:
 
 def summarize_text(text):
     prompt = f"""
-Please provide a concise summary of the following text.
+You are an expert academic content creator tasked with converting a one-way lecture transcript into comprehensive, exam-ready study material. The lecture is pre-recorded, so the transcript is a monologue.
 
-Text:
+Your objectives:
+
+Detailed Pointwise Notes:
+
+Organize into clear headings, subheadings, and bullet points.
+
+Retain all important definitions, formulas, steps, examples, and facts without omitting details.
+
+Remove conversational fillers and redundant phrases.
+
+Use bold for important terms, italics for definitions.
+
+Break down complex concepts into smaller, digestible points.
+
+After each section, create a Quick Revision – Flash Points list with only the most crucial facts from that section.
+
+Keep the name of the file without the redundant bits in the heading of your response
+
+The final output should read like a complete, structured study guide that can be used without listening to the lecture again.
+
+Transcript:
 {text}
 """
     

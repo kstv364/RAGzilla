@@ -101,7 +101,68 @@ Transcript:
 {text}
 """
 
-    prompt = study_guide_prompt if summary_type == "study_guide" else detailed_transcript_prompt
+    cloud_expertise_article_prompt = f"""
+You are an expert software engineer tasked with writing a comprehensive Medium article based on the provided lecture transcript. The article should showcase your expertise in **Cloud Technologies**.
+
+Your objectives:
+
+1.  **Target Audience**: Software engineers, cloud architects, and tech enthusiasts.
+2.  **Structure**:
+    *   Catchy Title
+    *   Introduction (hook, what the article covers)
+    *   Main Body (organized with clear headings and subheadings)
+    *   Conclusion (key takeaways, future outlook)
+3.  **Content Focus**:
+    *   Extract key concepts related to cloud computing (e.g., AWS, Azure, GCP, serverless, microservices, containerization, infrastructure as code, cloud security, cost optimization, distributed systems).
+    *   Explain these concepts clearly and concisely.
+    *   **Include real-life code examples** where applicable (e.g., a snippet of a serverless function, a basic IaC template, a design pattern implementation relevant to cloud). Use Python, Node.js, or Go for code examples.
+    *   **Include architecture diagrams** (described in text, e.g., "A typical serverless architecture would involve API Gateway -> Lambda -> DynamoDB").
+    *   Discuss best practices, common pitfalls, and solutions in cloud development.
+    *   Showcase your understanding of cloud design patterns (e.g., Strangler Fig, Circuit Breaker, Saga).
+4.  **Tone**: Professional, insightful, and engaging.
+5.  **Length**: Aim for a comprehensive article suitable for Medium (e.g., 1500-2500 words, adjust based on content).
+
+{"Video Title: " + video_title if video_title else ""}
+Transcript:
+{text}
+"""
+
+    ai_ml_expertise_article_prompt = f"""
+You are an expert software engineer tasked with writing a comprehensive Medium article based on the provided lecture transcript. The article should showcase your expertise in **AI/ML Technologies**.
+
+Your objectives:
+
+1.  **Target Audience**: Software engineers, data scientists, ML engineers, and AI enthusiasts.
+2.  **Structure**:
+    *   Catchy Title
+    *   Introduction (hook, what the article covers)
+    *   Main Body (organized with clear headings and subheadings)
+    *   Conclusion (key takeaways, future outlook)
+3.  **Content Focus**:
+    *   Extract key concepts related to AI/ML (e.g., machine learning algorithms, deep learning, neural networks, NLP, computer vision, model deployment, MLOps, data preprocessing, ethical AI).
+    *   Explain these concepts clearly and concisely.
+    *   **Include real-life code examples** where applicable (e.g., a simple Python snippet for a model training loop, a data preprocessing step, a design pattern for ML pipelines). Use Python for code examples.
+    *   **Include architecture diagrams** (described in text, e.g., "A typical ML pipeline involves Data Ingestion -> Data Preprocessing -> Model Training -> Model Evaluation -> Model Deployment").
+    *   Discuss best practices, common challenges, and solutions in AI/ML development.
+    *   Showcase your understanding of ML design patterns (e.g., Feature Store, Model Versioning, Online/Offline Inference).
+4.  **Tone**: Professional, insightful, and engaging.
+5.  **Length**: Aim for a comprehensive article suitable for Medium (e.g., 1500-2500 words, adjust based on content).
+
+{"Video Title: " + video_title if video_title else ""}
+Transcript:
+{text}
+"""
+
+    if summary_type == "study_guide":
+        prompt = study_guide_prompt
+    elif summary_type == "detailed_transcript":
+        prompt = detailed_transcript_prompt
+    elif summary_type == "medium_article_cloud":
+        prompt = cloud_expertise_article_prompt
+    elif summary_type == "medium_article_ai_ml":
+        prompt = ai_ml_expertise_article_prompt
+    else:
+        prompt = study_guide_prompt # Default fallback
     
     use_gemini = os.getenv("USE_GEMINI", "true").lower() == "true"
 
@@ -129,6 +190,24 @@ Transcript:
     # Write summary to a .md file
     import uuid
     import re
+
+    # Determine the subfolder based on summary_type
+    subfolder = ""
+    if summary_type == "study_guide":
+        subfolder = "study_guides"
+    elif summary_type == "detailed_transcript":
+        subfolder = "detailed_transcripts"
+    elif summary_type == "medium_article_cloud":
+        subfolder = "medium_articles_cloud"
+    elif summary_type == "medium_article_ai_ml":
+        subfolder = "medium_articles_ai_ml"
+    else:
+        subfolder = "misc_summaries" # Fallback for any unhandled types
+
+    base_dir = "summaries"
+    output_dir = os.path.join(base_dir, subfolder)
+    os.makedirs(output_dir, exist_ok=True) # Ensure the specific subfolder exists
+
     if video_title:
         # Sanitize title for filename
         filename = re.sub(r'[^\w\s-]', '', video_title).strip().replace(' ', '_')
@@ -137,8 +216,7 @@ Transcript:
     else:
         filename = str(uuid.uuid4())
     
-    file_path = f"summaries/{filename}.md"
-    os.makedirs("summaries", exist_ok=True) # Ensure 'summaries' directory exists
+    file_path = os.path.join(output_dir, f"{filename}.md")
     with open(file_path, "w", encoding='utf-8') as f:
         f.write(llm_output)
     logger.info(f"Summary saved to {file_path}")

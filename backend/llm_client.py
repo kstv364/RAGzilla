@@ -108,17 +108,18 @@ Your objectives:
 
 1.  **Target Audience**: Software engineers, cloud architects, and tech enthusiasts.
 2.  **Structure**:
-    *   Catchy Title
+    *   Catchy Title (H1 equivalent, use `# `)
     *   Introduction (hook, what the article covers)
-    *   Main Body (organized with clear headings and subheadings)
+    *   Main Body (organized with clear headings and subheadings. Use `## ` for main sections and `### ` for sub-sections. Do not use more than two heading levels apart from the title.)
     *   Conclusion (key takeaways, future outlook)
 3.  **Content Focus**:
     *   Extract key concepts related to cloud computing (e.g., AWS, Azure, GCP, serverless, microservices, containerization, infrastructure as code, cloud security, cost optimization, distributed systems).
     *   Explain these concepts clearly and concisely.
-    *   **Include real-life code examples** where applicable (e.g., a snippet of a serverless function, a basic IaC template, a design pattern implementation relevant to cloud). Use Python, Node.js, or Go for code examples.
+    *   **Include real-life code examples** where applicable (e.g., a snippet of a serverless function, a basic IaC template, a design pattern implementation relevant to cloud). Ensure code examples are placed naturally within the reading flow, typically after an explanation of the concept they illustrate. Use Python, Node.js, or Go for code examples.
     *   **Include architecture diagrams** (described in text, e.g., "A typical serverless architecture would involve API Gateway -> Lambda -> DynamoDB").
     *   Discuss best practices, common pitfalls, and solutions in cloud development.
     *   Showcase your understanding of cloud design patterns (e.g., Strangler Fig, Circuit Breaker, Saga).
+    *   **Use single-level bullet points only.** Do not use nested bullet points.
 4.  **Tone**: Professional, insightful, and engaging.
 5.  **Length**: Aim for a comprehensive article suitable for Medium (e.g., 1500-2500 words, adjust based on content).
 
@@ -134,17 +135,18 @@ Your objectives:
 
 1.  **Target Audience**: Software engineers, data scientists, ML engineers, and AI enthusiasts.
 2.  **Structure**:
-    *   Catchy Title
+    *   Catchy Title (H1 equivalent, use `# `)
     *   Introduction (hook, what the article covers)
-    *   Main Body (organized with clear headings and subheadings)
+    *   Main Body (organized with clear headings and subheadings. Use `## ` for main sections and `### ` for sub-sections. Do not use more than two heading levels apart from the title.)
     *   Conclusion (key takeaways, future outlook)
 3.  **Content Focus**:
     *   Extract key concepts related to AI/ML (e.g., machine learning algorithms, deep learning, neural networks, NLP, computer vision, model deployment, MLOps, data preprocessing, ethical AI).
     *   Explain these concepts clearly and concisely.
-    *   **Include real-life code examples** where applicable (e.g., a simple Python snippet for a model training loop, a data preprocessing step, a design pattern for ML pipelines). Use Python for code examples.
+    *   **Include real-life code examples** where applicable (e.g., a simple Python snippet for a model training loop, a data preprocessing step, a design pattern for ML pipelines). Ensure code examples are placed naturally within the reading flow, typically after an explanation of the concept they illustrate. Use Python for code examples.
     *   **Include architecture diagrams** (described in text, e.g., "A typical ML pipeline involves Data Ingestion -> Data Preprocessing -> Model Training -> Model Evaluation -> Model Deployment").
     *   Discuss best practices, common challenges, and solutions in AI/ML development.
     *   Showcase your understanding of ML design patterns (e.g., Feature Store, Model Versioning, Online/Offline Inference).
+    *   **Use single-level bullet points only.** Do not use nested bullet points.
 4.  **Tone**: Professional, insightful, and engaging.
 5.  **Length**: Aim for a comprehensive article suitable for Medium (e.g., 1500-2500 words, adjust based on content).
 
@@ -217,6 +219,9 @@ Transcript:
         filename = str(uuid.uuid4())
     
     file_path = os.path.join(output_dir, f"{filename}.md")
+    if(file_path.exists()):
+       file_path = os.path.join(output_dir, f"{filename}{str(uuid.uuid4())}.md")
+
     with open(file_path, "w", encoding='utf-8') as f:
         f.write(llm_output)
     logger.info(f"Summary saved to {file_path}")

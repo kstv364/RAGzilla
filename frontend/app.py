@@ -14,13 +14,20 @@ def upload_pdf(file, collection_name_input, add_to_kb):
         response = requests.post(f"{API_BASE}/ingest-pdf", files={"file": (file.name, f)}, data={"collection_name": collection_name})
     return response.json()
 
-def ingest_youtube_video(youtube_url, collection_name_input, add_to_kb):
+def ingest_youtube_video(youtube_url, collection_name_input, add_to_kb, summary_type):
     if not youtube_url:
         return {"error": "Please enter a YouTube URL."}, "No summary available."
     if add_to_kb and collection_name_input == "temp_docs":
         return {"error": "Collection name 'temp_docs' cannot be used for persistent knowledge base."}, "No summary available."
     collection_name = collection_name_input if add_to_kb else "temp_docs"
-    response = requests.post(f"{API_BASE}/ingest-youtube", data={"youtube_url": youtube_url, "collection_name": collection_name})
+    response = requests.post(
+        f"{API_BASE}/ingest-youtube",
+        data={
+            "youtube_url": youtube_url,
+            "collection_name": collection_name,
+            "summary_type": summary_type # Pass the summary type
+        }
+    )
     result = response.json()
     summary = result.pop("summary", "No summary available.") # Remove summary from result JSON
     return result, summary
@@ -49,7 +56,13 @@ youtube_ingest_interface = gr.Interface(
     inputs=[
         gr.Textbox(label="YouTube URL"),
         gr.Textbox(label="Knowledge Base Name (e.g., my_youtube_kb)", value="youtube_docs"),
-        gr.Checkbox(label="Add to Knowledge Base (persistent)", value=True)
+        gr.Checkbox(label="Add to Knowledge Base (persistent)", value=True),
+        gr.Radio(
+            ["study_guide", "detailed_transcript"],
+            label="Summary Type",
+            value="study_guide",
+            info="Choose between a study guide or a detailed transcript summary."
+        )
     ],
     outputs=[
         gr.JSON(label="Ingest Result"),

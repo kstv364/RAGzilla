@@ -21,6 +21,11 @@ services:
       QDRANT_PORT: 6333
     env_file: 
       - ../.env # Read from .env file
+    volumes:
+      - ../summaries/study_guides:/app/summaries/study_guides
+      - ../summaries/detailed_transcripts:/app/summaries/detailed_transcripts
+      - ../summaries/medium_articles_cloud:/app/summaries/medium_articles_cloud
+      - ../summaries/medium_articles_ai_ml:/app/summaries/medium_articles_ai_ml
     depends_on:
       - qdrant
     restart: unless-stopped

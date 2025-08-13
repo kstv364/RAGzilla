@@ -51,25 +51,82 @@ pdf_upload_interface = gr.Interface(
 )
 
 # YouTube Ingest Interface
-youtube_ingest_interface = gr.Interface(
-    fn=ingest_youtube_video,
-    inputs=[
-        gr.Textbox(label="YouTube URL"),
-        gr.Textbox(label="Knowledge Base Name (e.g., my_youtube_kb)", value="youtube_docs"),
-        gr.Checkbox(label="Add to Knowledge Base (persistent)", value=True),
-        gr.Radio(
-            ["study_guide", "detailed_transcript"],
-            label="Summary Type",
-            value="study_guide",
-            info="Choose between a study guide or a detailed transcript summary."
-        )
-    ],
-    outputs=[
-        gr.JSON(label="Ingest Result"),
-        gr.Markdown(label="Video Summary")
-    ],
-    title="YouTube Ingest"
-)
+with gr.Blocks() as youtube_ingest_interface:
+    gr.Markdown("## YouTube Ingest")
+    youtube_url_input = gr.Textbox(label="YouTube URL")
+    collection_name_input = gr.Textbox(label="Knowledge Base Name (e.g., my_youtube_kb)", value="youtube_docs")
+    add_to_kb_checkbox = gr.Checkbox(label="Add to Knowledge Base (persistent)", value=True)
+
+    summary_type_main = gr.Radio(
+        ["Study Guide", "Detailed Transcript", "Medium Article"],
+        label="Output Type",
+        value="Study Guide",
+        info="Choose the desired output format."
+    )
+
+    medium_article_expertise = gr.Radio(
+        ["Cloud Expertise", "AI/ML Expertise"],
+        label="Medium Article Expertise",
+        visible=False, # Hidden by default
+        info="Choose the expertise area for the Medium article."
+    )
+
+    # Function to update visibility of expertise radio buttons
+    def update_expertise_visibility(choice):
+        if choice == "Medium Article":
+            return gr.update(visible=True)
+        else:
+            return gr.update(visible=False)
+
+    summary_type_main.change(
+        update_expertise_visibility,
+        inputs=summary_type_main,
+        outputs=medium_article_expertise
+    )
+
+    # State to hold the dynamically determined summary type
+    final_summary_type_state = gr.State(value="study_guide")
+
+    # Function to determine the final summary_type to send to backend
+    def update_final_summary_type(main_type, expertise_type):
+        if main_type == "Study Guide":
+            return "study_guide"
+        elif main_type == "Detailed Transcript":
+            return "detailed_transcript"
+        elif main_type == "Medium Article":
+            if expertise_type == "Cloud Expertise":
+                return "medium_article_cloud"
+            elif expertise_type == "AI/ML Expertise":
+                return "medium_article_ai_ml"
+        return "study_guide" # Default fallback
+
+    summary_type_main.change(
+        fn=update_final_summary_type,
+        inputs=[summary_type_main, medium_article_expertise],
+        outputs=final_summary_type_state
+    )
+
+    medium_article_expertise.change(
+        fn=update_final_summary_type,
+        inputs=[summary_type_main, medium_article_expertise],
+        outputs=final_summary_type_state
+    )
+
+    ingest_button = gr.Button("Ingest and Summarize")
+
+    ingest_result_json = gr.JSON(label="Ingest Result")
+    video_summary_markdown = gr.Markdown(label="Generated Output")
+
+    ingest_button.click(
+        fn=ingest_youtube_video,
+        inputs=[
+            youtube_url_input,
+            collection_name_input,
+            add_to_kb_checkbox,
+            final_summary_type_state # Pass the state directly
+        ],
+        outputs=[ingest_result_json, video_summary_markdown]
+    )
 
 # Q&A Interface
 qa_interface = gr.Interface(

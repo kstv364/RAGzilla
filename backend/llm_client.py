@@ -218,10 +218,7 @@ Transcript:
     else:
         filename = str(uuid.uuid4())
     
-    file_path = os.path.join(output_dir, f"{filename}.md")
-    if(file_path.exists()):
-       file_path = os.path.join(output_dir, f"{filename}{str(uuid.uuid4())}.md")
-
+    file_path = os.path.join(output_dir, f"{filename}{str(uuid.uuid4())}.md")
     with open(file_path, "w", encoding='utf-8') as f:
         f.write(llm_output)
     logger.info(f"Summary saved to {file_path}")

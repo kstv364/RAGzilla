@@ -33,7 +33,8 @@ async def ingest_pdf_route(file: UploadFile = File(...), collection_name: Option
 async def ingest_youtube_route(
     youtube_url: str = Form(...),
     collection_name: Optional[str] = Form("docs"),
-    summary_type: Optional[str] = Form("study_guide") # New parameter for summary type
+    summary_type: Optional[str] = Form("study_guide"), # New parameter for summary type
+    language: Optional[str] = Form("en") # New parameter for language
 ):
     ingestion_result = ingest_youtube(youtube_url, collection_name)
     if "transcript_text" in ingestion_result:
@@ -42,6 +43,7 @@ async def ingest_youtube_route(
         summary_result = summarize_text(transcript_text, video_title, summary_type) # Pass summary_type
         ingestion_result["summary"] = summary_result.get("summary", "Could not generate summary.")
         ingestion_result["summary_file"] = summary_result.get("summary_file", "")
+        ingestion_result["language"] = language # Pass language to the result
     ingestion_result.pop("transcript_text")
     return ingestion_result
 

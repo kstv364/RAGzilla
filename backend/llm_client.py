@@ -54,9 +54,9 @@ Write a clear and solid explanation or answer to this prompt:
       f.write(llm_output)
     return {"answer": llm_output}
 
-def summarize_text(text, video_title="", summary_type="study_guide"):
+def summarize_text(text, video_title="", summary_type="study_guide", language="en"):
     study_guide_prompt = f"""
-You are an expert academic content creator tasked with converting a one-way lecture transcript into comprehensive, exam-ready study material. The lecture is pre-recorded, so the transcript is a monologue.
+You are an expert academic content creator tasked with converting a one-way lecture transcript into comprehensive, exam-ready study material. The lecture is pre-recorded, so the transcript is a monologue. The output should be in {language}.
 
 Your objectives:
 
@@ -82,7 +82,7 @@ Transcript:
 """
 
     detailed_transcript_prompt = f"""
-You are an expert summarizer tasked with creating a highly detailed and comprehensive summary of a lecture transcript. The goal is to provide a thorough overview that retains all critical information, nuances, and specific examples from the original content.
+You are an expert summarizer tasked with creating a highly detailed and comprehensive summary of a lecture transcript. The goal is to provide a thorough overview that retains all critical information, nuances, and specific examples from the original content. The output should be in {language}.
 
 Your objectives:
 

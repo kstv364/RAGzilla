@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import axios from 'axios';
 
-const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || "http://localhost:8000/ingest-youtube";
+const BACKEND_URL = "http://localhost:8000/ingest-youtube";
 
 const App: React.FC = () => {
   const [youtubeUrl, setYoutubeUrl] = useState<string>('');

@@ -139,9 +139,17 @@ qa_interface = gr.Interface(
     title="Ask Questions from Knowledge Bases"
 )
 
+# Humanizer Interface
+humanizer_interface = gr.Interface(
+    fn=lambda x: requests.post(f"{API_BASE}/humanize-article", data={"original_article": x}).json().get("humanized_article", "Error humanizing article."),
+    inputs=gr.Textbox(label="Original Article", lines=10),
+    outputs=gr.Markdown(label="Humanized Article"),
+    title="Humanize Medium Article"
+)
+
 app = gr.TabbedInterface(
-    [pdf_upload_interface, youtube_ingest_interface, qa_interface],
-    ["Upload PDF", "Ingest YouTube", "Ask Questions"]
+    [pdf_upload_interface, youtube_ingest_interface, qa_interface, humanizer_interface],
+    ["Upload PDF", "Ingest YouTube", "Ask Questions", "Humanize Article"]
 )
 
 if __name__ == "__main__":

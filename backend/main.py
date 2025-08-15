@@ -7,6 +7,7 @@ from typing import Optional
 from dotenv import load_dotenv
 import os
 import logging
+from backend.humanizer import humanize_article_with_langgraph # Import the new function
 load_dotenv()
 
 # Configure logging
@@ -46,6 +47,12 @@ async def ingest_youtube_route(
         ingestion_result["language"] = language # Pass language to the result
     ingestion_result.pop("transcript_text")
     return ingestion_result
+
+@app.post("/humanize-article")
+async def humanize_article_route(original_article: str = Form(...)):
+    logger.info(f"Received request to humanize article.")
+    result = humanize_article_with_langgraph(original_article)
+    return result
 
 @app.get("/ask")
 async def ask(query: str, collection_name: Optional[str] = "temp_docs"):

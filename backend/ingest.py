@@ -103,3 +103,56 @@ def ingest_youtube(youtube_url: str, collection_name: str = "docs"):
         return ingestion_result
     else:
         return {"error": "Could not retrieve YouTube transcript."}
+
+def get_youtube_transcript(youtube_url: str):
+    transcript_text = ""
+    video_title = ""
+    try:
+        # Extract video ID from the URL
+        parsed_url = urlparse(youtube_url)
+        if parsed_url.hostname == 'youtu.be':
+            video_id = parsed_url.path[1:]
+        elif parsed_url.hostname in ('www.youtube.com', 'youtube.com'):
+            video_id = parse_qs(parsed_url.query).get('v', [None])[0]
+        else:
+            return {"error": "Invalid YouTube URL."}
+
+        if not video_id:
+            return {"error": "Could not extract video ID from YouTube URL."}
+
+        try:
+            oembed_url = f"https://www.youtube.com/oembed?url=https://www.youtube.com/watch?v={video_id}&format=json"
+            response = requests.get(oembed_url)
+            response.raise_for_status()
+            video_info = response.json()
+            video_title = video_info.get("title", "")
+            if video_title:
+                logger.info(f"Retrieved video title: {video_title}")
+        except requests.exceptions.RequestException as e:
+            logger.warning(f"Could not retrieve video title for {video_id}: {e}")
+        except Exception as e:
+            logger.warning(f"Error parsing video info for {video_id}: {e}")
+        
+        try:
+            transcript_list = YouTubeTranscriptApi().fetch(video_id, languages=['en', 'hi'])
+            transcript_text = " ".join([item.text for item in transcript_list])
+            if video_title:
+                transcript_text = f"Title: {video_title}. " + transcript_text
+        except NoTranscriptFound:
+            logger.info(f"No transcript found for video ID: {video_id} in specified languages.")
+            return {"error": "No transcript found for this video in English or Hindi."}
+        except TranscriptsDisabled:
+            logger.info(f"Transcripts are disabled for video ID: {video_id}.")
+            return {"error": "Transcripts are disabled for this video."}
+        except Exception as e:
+            logger.error(f"Error retrieving YouTube transcript: {e}")
+            return {"error": str(e)}
+
+    except Exception as e:
+        logger.error(f"Error processing YouTube URL: {e}")
+        return {"error": str(e)}
+    
+    if transcript_text:
+        return {"transcript_text": transcript_text, "video_title": video_title}
+    else:
+        return {"error": "Could not retrieve YouTube transcript."}

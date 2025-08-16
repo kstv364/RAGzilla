@@ -224,3 +224,56 @@ Transcript:
     logger.info(f"Summary saved to {file_path}")
 
     return {"summary": llm_output, "summary_file": file_path}
+
+def generate_ai_ml_posts(content: str, user_prompt: str):
+    post_generation_prompt = f"""
+You are an expert AI/ML thought leader. Your task is to generate 3 distinct short posts (50-100 words each) based on the provided content and user prompt. Each post should:
+- Focus on AI/ML concepts.
+- Be insightful and demonstrate technical leadership.
+- Be concise and suitable for platforms like LinkedIn.
+- Incorporate the user's specific prompt or focus.
+- Address the broad concept from 3 different angles or perspectives.
+- Use professional emojis sparingly to enhance readability and engagement.
+- Be structured with appropriate spacing (e.g., short paragraphs, line breaks) for a clean, catchy presentation on LinkedIn.
+
+Content:
+{content}
+
+User Prompt:
+{user_prompt}
+
+Generate 3 posts, each clearly separated by "---POST---".
+
+Example format:
+Post 1 content.
+---POST---
+Post 2 content.
+---POST---
+Post 3 content.
+"""
+    
+    use_gemini = os.getenv("USE_GEMINI", "true").lower() == "true"
+    posts_output = ""
+
+    if use_gemini and GEMINI_API_KEY:
+        logger.info("Using Gemini API for AI/ML post generation.")
+        try:
+            model = genai.GenerativeModel('gemini-2.5-flash')
+            response = model.generate_content(post_generation_prompt)
+            posts_output = response.text
+        except Exception as e:
+            logger.error(f"Gemini API error during AI/ML post generation: {e}. Falling back to Ollama.")
+            use_gemini = False
+    
+    if not use_gemini:
+        logger.info("Falling back to Ollama for AI/ML post generation.")
+        result = subprocess.run(
+            ["ollama", "run", "llama3", post_generation_prompt],
+            capture_output=True,
+            text=True
+        )
+        posts_output = result.stdout.strip()
+
+    # Parse the output into a list of posts
+    posts = [p.strip() for p in posts_output.split("---POST---") if p.strip()]
+    return posts

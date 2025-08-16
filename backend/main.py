@@ -54,6 +54,41 @@ async def humanize_article_route(original_article: str = Form(...)):
     result = humanize_article_with_langgraph(original_article)
     return result
 
+@app.post("/generate-posts")
+async def generate_posts_route(
+    youtube_url: Optional[str] = Form(None),
+    text_input: Optional[str] = Form(None),
+    user_prompt: str = Form(...)
+):
+    if not youtube_url and not text_input:
+        return {"error": "Either a YouTube URL or text input must be provided."}
+
+    from backend.ingest import get_youtube_transcript # Import the new function
+
+    content_for_posts = ""
+    if youtube_url:
+        transcript_result = get_youtube_transcript(youtube_url)
+        if "transcript_text" in transcript_result:
+            content_for_posts = transcript_result["transcript_text"]
+        else:
+            return {"error": transcript_result.get("error", "Could not retrieve transcript from YouTube URL.")}
+    elif text_input:
+        content_for_posts = text_input
+
+    # Generate 3 posts (this will require a new LLM function)
+    # For now, let's assume a placeholder function `generate_ai_ml_posts`
+    # This function will need to be created in llm_client.py
+    from backend.llm_client import generate_ai_ml_posts
+    
+    raw_posts = generate_ai_ml_posts(content_for_posts, user_prompt)
+    
+    humanized_posts = []
+    for post in raw_posts:
+        humanized_result = humanize_article_with_langgraph(post)
+        humanized_posts.append(humanized_result.get("humanized_article", "Error humanizing post."))
+    
+    return {"posts": humanized_posts}
+
 @app.get("/ask")
 async def ask(query: str, collection_name: Optional[str] = "temp_docs"):
     return answer_query(query, collection_name)

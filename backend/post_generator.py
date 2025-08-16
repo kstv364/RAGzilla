@@ -107,8 +107,8 @@ def evaluator_agent(state: PostState):
     feedback_list = []
 
     evaluator_prompt = ChatPromptTemplate.from_messages([
-        ("system", "You are an expert evaluator of humanized technical articles. Your task is to provide constructive feedback on how well the 'Humanized Article' maintains the original meaning and technical details of the 'Original Article', and how effectively it incorporates human-like tone (frustration, jokes, and emotions). Provide specific, actionable feedback for improvement. If the humanized article is perfect, state 'PERFECT'. Provide feedback specific to LinkedIn, such as emoji usage, spacing, and overall presentation."),
-        ("human", "Original Article:\n{original_article}\n\nHumanized Article:\n{humanized_article}\n\nProvide feedback for improvement, or state 'PERFECT' if no improvements are needed.")
+        ("system", "You are an expert evaluator of humanized technical articles. Your task is to provide constructive feedback on how well the 'Humanized Article' maintains the original meaning and technical details of the 'Original Article', and how effectively it incorporates human-like tone (frustration, jokes, and emotions). Provide feedback specific to LinkedIn, such as emoji usage, spacing, and overall presentation. If improvements are needed, provide specific, actionable feedback. If the humanized article is perfect, respond with ONLY the word 'PERFECT'."),
+        ("human", "Original Article:\n{original_article}\n\nHumanized Article:\n{humanized_article}\n\nProvide feedback for improvement, or respond with ONLY the word 'PERFECT'.")
     ])
     chain = evaluator_prompt | llm | StrOutputParser()
 

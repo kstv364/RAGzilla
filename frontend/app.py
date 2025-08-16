@@ -147,9 +147,55 @@ humanizer_interface = gr.Interface(
     title="Humanize Medium Article"
 )
 
+# Post Generation Interface
+with gr.Blocks() as post_generation_interface:
+    gr.Markdown("## Generate AI/ML Thought Leader Posts")
+    youtube_url_input_posts = gr.Textbox(label="YouTube URL (Optional)", placeholder="Enter YouTube URL or provide text below")
+    text_input_posts = gr.Textbox(label="Text Input (Optional)", lines=5, placeholder="Enter text directly if no YouTube URL")
+    user_prompt_posts = gr.Textbox(label="User Prompt", placeholder="e.g., 'Focus on recent advancements in LLMs' or 'Explain the challenges of MLOps'")
+    
+    generate_posts_button = gr.Button("Generate Posts")
+    
+    output_post_1 = gr.Markdown("### Post 1")
+    output_post_content_1 = gr.Markdown(label="Content")
+    output_post_2 = gr.Markdown("### Post 2")
+    output_post_content_2 = gr.Markdown(label="Content")
+    output_post_3 = gr.Markdown("### Post 3")
+    output_post_content_3 = gr.Markdown(label="Content")
+
+    def generate_posts_frontend(youtube_url, text_input, user_prompt):
+        payload = {
+            "user_prompt": user_prompt
+        }
+        if youtube_url:
+            payload["youtube_url"] = youtube_url
+        elif text_input:
+            payload["text_input"] = text_input
+        else:
+            return "Error: Either YouTube URL or text input must be provided.", "", ""
+
+        response = requests.post(f"{API_BASE}/generate-posts", data=payload)
+        result = response.json()
+        
+        if "error" in result:
+            return result["error"], "", ""
+        
+        posts = result.get("posts", [])
+        return "", posts[0] if len(posts) > 0 else "", \
+               "", posts[1] if len(posts) > 1 else "", \
+               "", posts[2] if len(posts) > 2 else ""
+
+    generate_posts_button.click(
+        fn=generate_posts_frontend,
+        inputs=[youtube_url_input_posts, text_input_posts, user_prompt_posts],
+        outputs=[output_post_1, output_post_content_1,
+                 output_post_2, output_post_content_2,
+                 output_post_3, output_post_content_3]
+    )
+
 app = gr.TabbedInterface(
-    [pdf_upload_interface, youtube_ingest_interface, qa_interface, humanizer_interface],
-    ["Upload PDF", "Ingest YouTube", "Ask Questions", "Humanize Article"]
+    [pdf_upload_interface, youtube_ingest_interface, qa_interface, humanizer_interface, post_generation_interface],
+    ["Upload PDF", "Ingest YouTube", "Ask Questions", "Humanize Article", "Generate AI/ML Posts"]
 )
 
 if __name__ == "__main__":

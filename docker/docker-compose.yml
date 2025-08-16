@@ -26,6 +26,7 @@ services:
       - ../summaries/detailed_transcripts:/app/summaries/detailed_transcripts
       - ../summaries/medium_articles_cloud:/app/summaries/medium_articles_cloud
       - ../summaries/medium_articles_ai_ml:/app/summaries/medium_articles_ai_ml
+      - ../summaries/ai_ml_posts:/app/summaries/ai_ml_posts
     depends_on:
       - qdrant
     restart: unless-stopped

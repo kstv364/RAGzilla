@@ -235,6 +235,7 @@ You are an expert AI/ML thought leader. Your task is to generate 3 distinct shor
 - Address the broad concept from 3 different angles or perspectives.
 - Use professional emojis sparingly to enhance readability and engagement.
 - Be structured with appropriate spacing (e.g., short paragraphs, line breaks) for a clean, catchy presentation on LinkedIn.
+- **The English used should reflect that of a non-native Indian speaker, with subtle nuances in phrasing and vocabulary.**
 
 Content:
 {content}
@@ -276,4 +277,24 @@ Post 3 content.
 
     # Parse the output into a list of posts
     posts = [p.strip() for p in posts_output.split("---POST---") if p.strip()]
+
+    # Write posts to a .md file
+    import uuid
+    import re
+
+    base_dir = "summaries"
+    output_dir = os.path.join(base_dir, "ai_ml_posts")
+    os.makedirs(output_dir, exist_ok=True) # Ensure the specific subfolder exists
+
+    # Create a unique filename for the set of posts
+    filename = f"ai_ml_posts_{str(uuid.uuid4())}.md"
+    file_path = os.path.join(output_dir, filename)
+    
+    with open(file_path, "w", encoding='utf-8') as f:
+        for i, post in enumerate(posts):
+            f.write(f"### Post {i+1}\n")
+            f.write(post)
+            f.write("\n\n")
+    logger.info(f"AI/ML posts saved to {file_path}")
+
     return posts

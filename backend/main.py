@@ -78,16 +78,12 @@ async def generate_posts_route(
     # Generate 3 posts (this will require a new LLM function)
     # For now, let's assume a placeholder function `generate_ai_ml_posts`
     # This function will need to be created in llm_client.py
-    from backend.llm_client import generate_ai_ml_posts
-    
-    raw_posts = generate_ai_ml_posts(content_for_posts, user_prompt)
-    
-    humanized_posts = []
-    for post in raw_posts:
-        humanized_result = humanize_article_with_langgraph(post)
-        humanized_posts.append(humanized_result.get("humanized_article", "Error humanizing post."))
-    
-    return {"posts": humanized_posts}
+    from backend.post_generator import generate_and_humanize_posts
+
+    result = generate_and_humanize_posts(content_for_posts, user_prompt)
+    if "error" in result:
+        return {"error": result["error"]}
+    return {"posts": result["posts"]}
 
 @app.get("/ask")
 async def ask(query: str, collection_name: Optional[str] = "temp_docs"):

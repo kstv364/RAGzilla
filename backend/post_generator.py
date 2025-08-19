@@ -64,7 +64,7 @@ def generate_posts_agent(state: PostState):
             - The English used should reflect that of a non-native Indian speaker, with subtle nuances in phrasing and vocabulary.
             - Each post should address the broad concept from a different angle or perspective
 """),
-        ("human", f"""Content:\n{content}\n\nUser Prompt:\n{user_prompt}\n\n
+        ("human", """Content:\n{content}\n\nUser Prompt:\n{user_prompt}\n\n
          Generate 3 posts, each clearly separated by "---POST---".]\n\n
 Example format:
 Post 1 content.
@@ -75,7 +75,7 @@ Post 3 content.
          """)
     ])
     chain = post_generation_prompt | llm | StrOutputParser()
-    posts_output = chain.invoke({})
+    posts_output = chain.invoke({"content": content, "user_prompt": user_prompt})
     posts = [p.strip() for p in posts_output.split("---POST---") if p.strip()]
     return PostState(content=content, user_prompt=user_prompt, raw_posts=posts, iterations=state.iterations)
 

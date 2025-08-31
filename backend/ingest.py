@@ -134,7 +134,7 @@ def get_youtube_transcript(youtube_url: str):
             logger.warning(f"Error parsing video info for {video_id}: {e}")
         
         try:
-            transcript_list = YouTubeTranscriptApi().fetch(video_id, languages=['en', 'hi'])
+            transcript_list = YouTubeTranscriptApi().fetch(video_id, languages=['en', 'hi', 'bn'])
             transcript_text = " ".join([item.text for item in transcript_list])
             if video_title:
                 transcript_text = f"Title: {video_title}. " + transcript_text

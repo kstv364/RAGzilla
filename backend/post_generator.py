@@ -87,7 +87,7 @@ def humanizer_agent(state: PostState):
     humanized_posts = []
     
     humanizer_prompt = ChatPromptTemplate.from_messages([
-        ("system", "You are an expert humanizer of technical articles. Your goal is to rewrite the provided article to have a human-like tone, incorporating frustration, jokes, and emotions, while strictly preserving the original meaning and all technical details. The English used should reflect that of a non-native Indian speaker, with subtle nuances in phrasing and vocabulary. Use professional emojis sparingly to enhance readability and engagement. Be structured with appropriate spacing (e.g., short paragraphs, line breaks) for a clean, catchy presentation."),
+        ("system", "You are an expert humanizer of technical articles. Your goal is to rewrite the provided article to have a human-like tone, incorporating frustration, jokes, and emotions, while strictly preserving the original meaning and all technical details. Use professional emojis sparingly to enhance readability and engagement. Be structured with appropriate spacing (e.g., short paragraphs, line breaks) for a clean, catchy presentation."),
         ("human", "Original Article:\n{original_article}\n\nProvide a humanized version of the article. Ensure the meaning and technical details are unchanged, only the tone is adjusted.")
     ])
     chain = humanizer_prompt | llm | StrOutputParser()

@@ -193,9 +193,17 @@ with gr.Blocks() as post_generation_interface:
                  output_post_3, output_post_content_3]
     )
 
+# LinkedIn Post Generator Interface
+linkedin_post_interface = gr.Interface(
+    fn=lambda x: requests.post(f"{API_BASE}/generate-linkedin-post", data={"article_text": x}).json().get("post", "Error generating LinkedIn post."),
+    inputs=gr.Textbox(label="Medium Article Text", lines=10),
+    outputs=gr.Markdown(label="Generated LinkedIn Post"),
+    title="Generate LinkedIn Post from Medium Article"
+)
+
 app = gr.TabbedInterface(
-    [pdf_upload_interface, youtube_ingest_interface, qa_interface, humanizer_interface, post_generation_interface],
-    ["Upload PDF", "Ingest YouTube", "Ask Questions", "Humanize Article", "Generate AI/ML Posts"]
+    [pdf_upload_interface, youtube_ingest_interface, qa_interface, humanizer_interface, post_generation_interface, linkedin_post_interface],
+    ["Upload PDF", "Ingest YouTube", "Ask Questions", "Humanize Article", "Generate AI/ML Posts", "Generate LinkedIn Post"]
 )
 
 if __name__ == "__main__":

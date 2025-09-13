@@ -298,3 +298,57 @@ Post 3 content.
     logger.info(f"AI/ML posts saved to {file_path}")
 
     return posts
+
+def generate_linkedin_post(article_text: str):
+    linkedin_post_prompt = f"""
+You are an expert technical recruiter and a skilled content creator. Your task is to generate a concise and engaging LinkedIn post (around 100-150 words) based on the provided Medium article text. The post should:
+- Act as a teaser, briefly explaining the tools and architecture used in the article.
+- Invoke curiosity among readers to click and read the full article.
+- Be designed to impress technical recruiters, highlighting key technical aspects and innovation.
+- Use professional emojis sparingly to enhance readability and engagement.
+- Be structured with appropriate spacing (e.g., short paragraphs, line breaks) for a clean, catchy presentation on LinkedIn.
+
+Medium Article Text:
+{article_text}
+
+Generate a single LinkedIn post.
+"""
+    
+    use_gemini = os.getenv("USE_GEMINI", "true").lower() == "true"
+    linkedin_post_output = ""
+
+    if use_gemini and GEMINI_API_KEY:
+        logger.info("Using Gemini API for LinkedIn post generation.")
+        try:
+            model = genai.GenerativeModel('gemini-2.5-flash')
+            response = model.generate_content(linkedin_post_prompt)
+            linkedin_post_output = response.text
+        except Exception as e:
+            logger.error(f"Gemini API error during LinkedIn post generation: {e}. Falling back to Ollama.")
+            use_gemini = False
+    
+    if not use_gemini:
+        logger.info("Falling back to Ollama for LinkedIn post generation.")
+        result = subprocess.run(
+            ["ollama", "run", "llama3", linkedin_post_prompt],
+            capture_output=True,
+            text=True
+        )
+        linkedin_post_output = result.stdout.strip()
+
+    # Write post to a .md file
+    import uuid
+    import re
+
+    base_dir = "summaries"
+    output_dir = os.path.join(base_dir, "linkedin_posts")
+    os.makedirs(output_dir, exist_ok=True)
+
+    filename = f"linkedin_post_{str(uuid.uuid4())}.md"
+    file_path = os.path.join(output_dir, filename)
+    
+    with open(file_path, "w", encoding='utf-8') as f:
+        f.write(linkedin_post_output)
+    logger.info(f"LinkedIn post saved to {file_path}")
+
+    return {"post": linkedin_post_output, "file_path": file_path}

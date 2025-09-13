@@ -54,6 +54,13 @@ async def humanize_article_route(original_article: str = Form(...)):
     result = humanize_article_with_langgraph(original_article)
     return result
 
+@app.post("/generate-linkedin-post")
+async def generate_linkedin_post_route(article_text: str = Form(...)):
+    logger.info(f"Received request to generate LinkedIn post.")
+    from backend.llm_client import generate_linkedin_post
+    result = generate_linkedin_post(article_text)
+    return result
+
 @app.post("/generate-posts")
 async def generate_posts_route(
     youtube_url: Optional[str] = Form(None),

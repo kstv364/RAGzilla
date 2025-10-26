@@ -108,7 +108,7 @@ Your objectives:
 
 1.  **Target Audience**: Software engineers, cloud architects, and tech enthusiasts.
 2.  **Structure**:
-    *   Catchy Title (H1 equivalent, use `# `)
+    *   Catchy Title (H2 equivalent, use `## `)
     *   Introduction (hook, what the article covers)
     *   Main Body (organized with clear headings and subheadings. Use `## ` for main sections and `### ` for sub-sections. Do not use more than two heading levels apart from the title.)
     *   Conclusion (key takeaways, future outlook)
@@ -119,7 +119,7 @@ Your objectives:
     *   **Include architecture diagrams** (described in text, e.g., "A typical serverless architecture would involve API Gateway -> Lambda -> DynamoDB").
     *   Discuss best practices, common pitfalls, and solutions in cloud development.
     *   Showcase your understanding of cloud design patterns (e.g., Strangler Fig, Circuit Breaker, Saga).
-    *   **Use single-level bullet points only.** Do not use nested bullet points.
+    *   **Use single-level bullet points only. All bullet points must be left-aligned. Do not use nested bullet points, strictly.**
 4.  **Tone**: Professional, insightful, and engaging.
 5.  **Length**: Aim for a comprehensive article suitable for Medium (e.g., 1500-2500 words, adjust based on content).
 
@@ -135,7 +135,7 @@ Your objectives:
 
 1.  **Target Audience**: Software engineers, data scientists, ML engineers, and AI enthusiasts.
 2.  **Structure**:
-    *   Catchy Title (H1 equivalent, use `# `)
+    *   Catchy Title (H2 equivalent, use `## `)
     *   Introduction (hook, what the article covers)
     *   Main Body (organized with clear headings and subheadings. Use `## ` for main sections and `### ` for sub-sections. Do not use more than two heading levels apart from the title.)
     *   Conclusion (key takeaways, future outlook)
@@ -146,7 +146,7 @@ Your objectives:
     *   **Include architecture diagrams** (described in text, e.g., "A typical ML pipeline involves Data Ingestion -> Data Preprocessing -> Model Training -> Model Evaluation -> Model Deployment").
     *   Discuss best practices, common challenges, and solutions in AI/ML development.
     *   Showcase your understanding of ML design patterns (e.g., Feature Store, Model Versioning, Online/Offline Inference).
-    *   **Use single-level bullet points only.** Do not use nested bullet points.
+    *   **Use single-level bullet points only. All bullet points must be left-aligned. Do not use nested bullet points, strictly.**
 4.  **Tone**: Professional, insightful, and engaging.
 5.  **Length**: Aim for a comprehensive article suitable for Medium (e.g., 1500-2500 words, adjust based on content).
 
@@ -162,7 +162,7 @@ Your objectives:
 
 1.  **Target Audience**: Software engineers, system architects, and tech leads.
 2.  **Structure**:
-    *   Catchy Title (H1 equivalent, use `# `)
+    *   Catchy Title (H2 equivalent, use `## `)
     *   Introduction (hook, what the article covers)
     *   Main Body (organized with clear headings and subheadings. Use `## ` for main sections and `### ` for sub-sections. Do not use more than two heading levels apart from the title.)
     *   Conclusion (key takeaways, future outlook)
@@ -179,7 +179,7 @@ Your objectives:
         Ensure Mermaid diagrams are correctly formatted within code blocks.
     *   **Include real-life code examples** where applicable (e.g., a snippet demonstrating a design pattern, a basic API endpoint, a configuration for a message queue). Ensure code examples are placed naturally within the reading flow, typically after an explanation of the concept they illustrate. Use Python, Java, Go, or Node.js for code examples.
     *   Discuss trade-offs, design patterns (e.g., CQRS, Event Sourcing, Sharding), and common challenges in system design.
-    *   **Use single-level bullet points only.** Do not use nested bullet points.
+    *   **Use single-level bullet points only. All bullet points must be left-aligned. Do not use nested bullet points, strictly.**
 4.  **Tone**: Professional, insightful, and engaging.
 5.  **Length**: Aim for a comprehensive article suitable for Medium (e.g., 1500-2500 words, adjust based on content).
 

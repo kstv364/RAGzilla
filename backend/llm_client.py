@@ -238,6 +238,8 @@ Transcript:
         subfolder = "medium_articles_cloud"
     elif summary_type == "medium_article_ai_ml":
         subfolder = "medium_articles_ai_ml"
+    elif summary_type == "medium_article_system_design":
+        subfolder = "medium_articles_system_design"
     else:
         subfolder = "misc_summaries" # Fallback for any unhandled types
 

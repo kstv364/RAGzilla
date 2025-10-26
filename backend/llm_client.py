@@ -155,6 +155,39 @@ Transcript:
 {text}
 """
 
+    system_design_expertise_article_prompt = f"""
+You are an expert software engineer and system architect tasked with writing a comprehensive Medium article based on the provided lecture transcript. The article should showcase your expertise in **System Design and Architecture**.
+
+Your objectives:
+
+1.  **Target Audience**: Software engineers, system architects, and tech leads.
+2.  **Structure**:
+    *   Catchy Title (H1 equivalent, use `# `)
+    *   Introduction (hook, what the article covers)
+    *   Main Body (organized with clear headings and subheadings. Use `## ` for main sections and `### ` for sub-sections. Do not use more than two heading levels apart from the title.)
+    *   Conclusion (key takeaways, future outlook)
+3.  **Content Focus**:
+    *   Extract key concepts related to system design (e.g., scalability, reliability, availability, fault tolerance, consistency models, distributed systems, microservices architecture, API design, database choices, caching strategies, load balancing, message queues, security considerations).
+    *   Explain these concepts clearly and concisely.
+    *   **Prioritize and include architecture diagrams in Mermaid syntax** where applicable to illustrate system components, data flow, and interactions. For example:
+        ```mermaid
+        graph TD
+            A[Client] --> B(Load Balancer)
+            B --> C{{Web Servers}}
+            C --> D[Database]
+        ```
+        Ensure Mermaid diagrams are correctly formatted within code blocks.
+    *   **Include real-life code examples** where applicable (e.g., a snippet demonstrating a design pattern, a basic API endpoint, a configuration for a message queue). Ensure code examples are placed naturally within the reading flow, typically after an explanation of the concept they illustrate. Use Python, Java, Go, or Node.js for code examples.
+    *   Discuss trade-offs, design patterns (e.g., CQRS, Event Sourcing, Sharding), and common challenges in system design.
+    *   **Use single-level bullet points only.** Do not use nested bullet points.
+4.  **Tone**: Professional, insightful, and engaging.
+5.  **Length**: Aim for a comprehensive article suitable for Medium (e.g., 1500-2500 words, adjust based on content).
+
+{"Video Title: " + video_title if video_title else ""}
+Transcript:
+{text}
+"""
+
     if summary_type == "study_guide":
         prompt = study_guide_prompt
     elif summary_type == "detailed_transcript":
@@ -163,6 +196,8 @@ Transcript:
         prompt = cloud_expertise_article_prompt
     elif summary_type == "medium_article_ai_ml":
         prompt = ai_ml_expertise_article_prompt
+    elif summary_type == "medium_article_system_design":
+        prompt = system_design_expertise_article_prompt
     else:
         prompt = study_guide_prompt # Default fallback
     

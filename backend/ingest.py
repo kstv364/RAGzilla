@@ -6,11 +6,44 @@ import io
 from urllib.parse import urlparse, parse_qs
 from youtube_transcript_api import YouTubeTranscriptApi, NoTranscriptFound, TranscriptsDisabled
 import logging
-import requests # Added requests for fetching video title
+import requests
+from bs4 import BeautifulSoup # Import BeautifulSoup
 
 # Configure logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
+
+def fetch_medium_article_content(url: str):
+    try:
+        response = requests.get(url)
+        response.raise_for_status() # Raise an exception for HTTP errors
+        soup = BeautifulSoup(response.text, 'lxml') # Use lxml parser
+
+        # Medium articles typically have content within <article> tags or specific div structures
+        # This is a common pattern, but might need adjustment for specific Medium layouts
+        article_body = soup.find('article')
+        if not article_body:
+            # Fallback for other common Medium article structures
+            article_body = soup.find('div', class_='s t u v w x y z') # Example class names, might vary
+            if not article_body:
+                article_body = soup.find('div', class_='postArticle-content') # Another common class
+
+        if article_body:
+            paragraphs = article_body.find_all(['p', 'h1', 'h2', 'h3', 'li'])
+            article_text = "\n".join([p.get_text() for p in paragraphs])
+            logger.info(f"Successfully fetched content from {url}")
+            return {"article_text": article_text}
+        else:
+            logger.warning(f"Could not find article body in {url}")
+            return {"error": "Could not extract article content from the provided URL. The structure might have changed or it's not a standard Medium article."}
+
+    except requests.exceptions.RequestException as e:
+        logger.error(f"Error fetching Medium article from {url}: {e}")
+        return {"error": f"Error fetching article: {e}"}
+    except Exception as e:
+        logger.error(f"Error parsing Medium article from {url}: {e}")
+        return {"error": f"Error parsing article: {e}"}
+
 
 def chunk_text(text, max_tokens=200):
     sentences = text.split(". ")

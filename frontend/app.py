@@ -65,7 +65,7 @@ with gr.Blocks() as youtube_ingest_interface:
     )
 
     medium_article_expertise = gr.Radio(
-        ["Cloud Expertise", "AI/ML Expertise"],
+        ["Cloud Expertise", "AI/ML Expertise", "System Design Expertise"],
         label="Medium Article Expertise",
         visible=False, # Hidden by default
         info="Choose the expertise area for the Medium article."
@@ -98,6 +98,8 @@ with gr.Blocks() as youtube_ingest_interface:
                 return "medium_article_cloud"
             elif expertise_type == "AI/ML Expertise":
                 return "medium_article_ai_ml"
+            elif expertise_type == "System Design Expertise":
+                return "medium_article_system_design"
         return "study_guide" # Default fallback
 
     summary_type_main.change(
@@ -194,12 +196,37 @@ with gr.Blocks() as post_generation_interface:
     )
 
 # LinkedIn Post Generator Interface
-linkedin_post_interface = gr.Interface(
-    fn=lambda x: requests.post(f"{API_BASE}/generate-linkedin-post", data={"article_text": x}).json().get("post", "Error generating LinkedIn post."),
-    inputs=gr.Textbox(label="Medium Article Text", lines=10),
-    outputs=gr.Markdown(label="Generated LinkedIn Post"),
-    title="Generate LinkedIn Post from Medium Article"
-)
+with gr.Blocks() as linkedin_post_interface:
+    gr.Markdown("## Generate LinkedIn Post from Medium Article")
+    medium_article_url_input = gr.Textbox(label="Medium Article URL (Optional)", placeholder="Enter Medium article URL")
+    article_text_input = gr.Textbox(label="Medium Article Text (Optional)", lines=10, placeholder="Enter article text directly if no URL")
+    
+    generate_linkedin_button = gr.Button("Generate LinkedIn Post")
+    
+    linkedin_post_output = gr.Markdown(label="Generated LinkedIn Post")
+
+    def generate_linkedin_post_frontend(medium_article_url, article_text):
+        payload = {}
+        if medium_article_url:
+            payload["medium_article_url"] = medium_article_url
+        elif article_text:
+            payload["article_text"] = article_text
+        else:
+            return "Error: Either Medium Article URL or text input must be provided."
+
+        response = requests.post(f"{API_BASE}/generate-linkedin-post", data=payload)
+        result = response.json()
+        
+        if "error" in result:
+            return result["error"]
+        
+        return result.get("post", "Error generating LinkedIn post.")
+
+    generate_linkedin_button.click(
+        fn=generate_linkedin_post_frontend,
+        inputs=[medium_article_url_input, article_text_input],
+        outputs=linkedin_post_output
+    )
 
 app = gr.TabbedInterface(
     [pdf_upload_interface, youtube_ingest_interface, qa_interface, humanizer_interface, post_generation_interface, linkedin_post_interface],

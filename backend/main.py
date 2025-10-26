@@ -1,5 +1,5 @@
 from fastapi import FastAPI, UploadFile, File, Form
-from backend.ingest import ingest_pdf, ingest_youtube
+from backend.ingest import ingest_pdf, ingest_youtube, fetch_medium_article_content # Import the new function
 from backend.rag import answer_query
 from backend.llm_client import summarize_text
 from fastapi.middleware.cors import CORSMiddleware
@@ -55,10 +55,26 @@ async def humanize_article_route(original_article: str = Form(...)):
     return result
 
 @app.post("/generate-linkedin-post")
-async def generate_linkedin_post_route(article_text: str = Form(...)):
+async def generate_linkedin_post_route(
+    article_text: Optional[str] = Form(None),
+    medium_article_url: Optional[str] = Form(None)
+):
     logger.info(f"Received request to generate LinkedIn post.")
+    
+    content_for_linkedin_post = ""
+    if medium_article_url:
+        article_fetch_result = fetch_medium_article_content(medium_article_url)
+        if "article_text" in article_fetch_result:
+            content_for_linkedin_post = article_fetch_result["article_text"]
+        else:
+            return {"error": article_fetch_result.get("error", "Could not fetch article from URL.")}
+    elif article_text:
+        content_for_linkedin_post = article_text
+    else:
+        return {"error": "Either article_text or medium_article_url must be provided."}
+
     from backend.llm_client import generate_linkedin_post
-    result = generate_linkedin_post(article_text)
+    result = generate_linkedin_post(content_for_linkedin_post)
     return result
 
 @app.post("/generate-posts")

@@ -120,4 +120,4 @@ This project is distributed under a [Proprietary License](LICENSE). All rights r
 
 ## 📧 Contact
 
-For any inquiries or support, please contact Kausstav Chanda at [kaustav.chanda.work@gmail.com]. <!-- Placeholder for your email -->
+For any inquiries or support, please contact Kaustav Chanda at [kaustav.chanda.work@gmail.com]. <!-- Placeholder for your email -->

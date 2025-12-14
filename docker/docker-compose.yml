@@ -28,6 +28,8 @@ services:
       - ../summaries/medium_articles_ai_ml:/app/summaries/medium_articles_ai_ml
       - ../summaries/medium_articles_system_design:/app/summaries/medium_articles_system_design
       - ../summaries/ai_ml_posts:/app/summaries/ai_ml_posts
+      - ../summaries/n8n_templates:/app/summaries/n8n_templates
+      - ../summaries/linkedin_posts:/app/summaries/linkedin_posts
     depends_on:
       - qdrant
     restart: unless-stopped

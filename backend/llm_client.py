@@ -389,3 +389,104 @@ Generate a single LinkedIn post.
     logger.info(f"LinkedIn post saved to {file_path}")
 
     return {"post": linkedin_post_output, "file_path": file_path}
+
+def generate_n8n_template(transcript_text: str, video_title: str = "", user_requirements: str = ""):
+    n8n_template_prompt = f"""
+You are an expert n8n workflow automation specialist. Your task is to create a comprehensive n8n workflow template based on the provided video transcript. The template should:
+
+1. **Analyze the content** to identify automation opportunities, data processing steps, and integration points.
+2. **Create a practical n8n workflow** that automates processes mentioned in the video.
+3. **Generate valid JSON** format that can be imported directly into n8n.
+4. **Include appropriate nodes** such as:
+   - HTTP Request nodes for API calls
+   - Set nodes for data transformation
+   - IF nodes for conditional logic
+   - Code nodes for custom JavaScript
+   - Webhook nodes for triggers
+   - Email, Slack, or other notification nodes
+   - Database nodes (MongoDB, PostgreSQL, etc.) if applicable
+   - File handling nodes if relevant
+
+5. **Structure the workflow** with clear naming and logical flow.
+6. **Add descriptive notes** for each node explaining its purpose.
+7. **Include error handling** where appropriate.
+8. **Consider user requirements** if provided.
+
+Video Title: {video_title}
+User Requirements: {user_requirements}
+
+Transcript Content:
+{transcript_text}
+
+Generate a complete n8n workflow template in JSON format that can be directly imported into n8n. The JSON should include:
+- Workflow metadata (name, description, tags)
+- All necessary nodes with proper configuration
+- Connections between nodes
+- Proper positioning for visual clarity
+- Meaningful variable names and descriptions
+
+Make sure the JSON is valid and properly formatted.
+"""
+    
+    use_gemini = os.getenv("USE_GEMINI", "true").lower() == "true"
+    template_output = ""
+
+    if use_gemini and GEMINI_API_KEY:
+        logger.info("Using Gemini API for n8n template generation.")
+        try:
+            model = genai.GenerativeModel('gemini-2.5-flash')
+            response = model.generate_content(n8n_template_prompt)
+            template_output = response.text
+        except Exception as e:
+            logger.error(f"Gemini API error during n8n template generation: {e}. Falling back to Ollama.")
+            use_gemini = False
+    
+    if not use_gemini:
+        logger.info("Falling back to Ollama for n8n template generation.")
+        result = subprocess.run(
+            ["ollama", "run", "llama3", n8n_template_prompt],
+            capture_output=True,
+            text=True
+        )
+        template_output = result.stdout.strip()
+
+    # Clean up the output to extract JSON if it's wrapped in markdown
+    import re
+    json_match = re.search(r'```(?:json)?\s*(.*?)\s*```', template_output, re.DOTALL)
+    if json_match:
+        template_output = json_match.group(1).strip()
+    
+    # Validate JSON
+    import json
+    try:
+        json.loads(template_output)
+        is_valid_json = True
+    except json.JSONDecodeError:
+        is_valid_json = False
+        logger.warning("Generated n8n template is not valid JSON")
+
+    # Save template to file
+    import uuid
+    base_dir = "summaries"
+    output_dir = os.path.join(base_dir, "n8n_templates")
+    os.makedirs(output_dir, exist_ok=True)
+
+    if video_title:
+        # Sanitize title for filename
+        filename = re.sub(r'[^\w\s-]', '', video_title).strip().replace(' ', '_')
+        if not filename:
+            filename = str(uuid.uuid4())
+    else:
+        filename = str(uuid.uuid4())
+    
+    file_path = os.path.join(output_dir, f"{filename}_{str(uuid.uuid4())}.json")
+    with open(file_path, "w", encoding='utf-8') as f:
+        f.write(template_output)
+    logger.info(f"n8n template saved to {file_path}")
+
+    return {
+        "template": template_output, 
+        "file_path": file_path,
+        "is_valid_json": is_valid_json,
+        "video_title": video_title
+    }

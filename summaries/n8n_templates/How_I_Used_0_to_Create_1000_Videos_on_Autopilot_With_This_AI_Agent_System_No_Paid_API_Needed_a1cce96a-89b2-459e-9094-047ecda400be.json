@@ -1,0 +1,378 @@
+{
+  "meta": {
+    "instanceId": "n8n-local"
+  },
+  "name": "AI Agent Video Generation System",
+  "description": "Automates the process of generating motivational AI videos, including downloading footage/music, generating quotes, compiling videos with text overlays, and uploading to YouTube. \n\n**Prerequisites & Setup (Crucial Steps BEFORE Importing/Running Workflow):**\n1.  **Local n8n setup with Docker:**\n    *   You must have n8n running locally via Docker, as `Execute Command` and `Read/Write Files from Disk` nodes are used.\n    *   **Install FFmpeg and yt-dlp** within your n8n Docker container. Refer to the video transcript for detailed installation steps using `docker exec`.\n2.  **Google Cloud Project Configuration:**\n    *   Create or select a Google Cloud Project.\n    *   Enable the **YouTube Data API v3** and **Google Sheets API**.\n    *   Create **OAuth 2.0 Client IDs** (Web application type) for both YouTube and Google Sheets.\n    *   Ensure to add the n8n OAuth redirect URL (e.g., `http://localhost:5678/rest/oauth2-credential/callback`) to your authorized redirect URIs in Google Cloud Console.\n3.  **n8n Credentials:**\n    *   In your n8n instance, create two OAuth2 API credentials:\n        *   **`YouTube OAuth2 API Credential`**: Connect this to the Google account you wish to upload YouTube videos to. You will need your Client ID and Client Secret from the Google Cloud Project.\n        *   **`Google Sheets OAuth2 API Credential`**: Connect this to the Google account that owns your Google Sheets document. You will need your Client ID and Client Secret from the Google Cloud Project.\n    *   **Replace `YOUR_GOOGLE_SHEET_ID_HERE`** in all Google Sheets nodes with your actual Google Sheet Document ID.\n    *   **Replace `YOUR_GOOGLE_SHEETS_CREDENTIAL_ID_HERE`** and **`YOUR_YOUTUBE_OAUTH_CREDENTIAL_ID_HERE`** with the respective Credential IDs from your n8n instance.\n4.  **Google Sheets Structure:**\n    *   Create a single Google Sheets document with three distinct sheets (tabs):\n        *   **`Video Pool`**: Columns: `video_path` (YouTube URL for footage), `internal_path` (will be filled by workflow), `status` (will be filled by workflow).\n        *   **`Music Pool`**: Columns: `music_url` (YouTube URL for music), `internal_path` (will be filled by workflow), `status` (will be filled by workflow).\n        *   **`Video Logs`**: Columns: `video_title`, `video_transcript` (the quote), `output_path` (will be filled by workflow), `status` (will be filled by workflow), `youtube_link` (will be filled by workflow), `post_time` (will be filled by workflow).\n5.  **Custom Font (for Text Overlay):**\n    *   Upload your preferred `.ttf` font file (e.g., `font.ttf`) into the `/home/node/data/` directory inside your n8n Docker container. The `Generate Text Overlay` Code node is configured to use `/home/node/data/font.ttf`.",
+  "tags": ["AI", "Video Generation", "YouTube", "Automation", "No-Code", "FFmpeg", "YT-DLP", "Google Sheets", "Localhost"],
+  "version": 1,
+  "createdAt": "2024-11-02T00:00:00.000Z",
+  "updatedAt": "2024-11-02T00:00:00.000Z",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "hours",
+              "hoursInterval": 1
+            }
+          ]
+        }
+      },
+      "id": "scheduleTriggerHourlyDownload",
+      "name": "Schedule Trigger - Hourly Download",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.1,
+      "position": [250, 200],
+      "notes": "Triggers the download workflow every hour to fetch new video footage and background music from YouTube."
+    },
+    {
+      "parameters": {
+        "operation": "readRows",
+        "documentId": "YOUR_GOOGLE_SHEET_ID_HERE",
+        "sheetName": "Video Pool",
+        "filtersUI": {
+          "values": [
+            {
+              "lookupColumn": "status",
+              "lookupValue": ""
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "getPendingVideos",
+      "name": "Get Pending Videos",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4,
+      "position": [500, 100],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "YOUR_GOOGLE_SHEETS_CREDENTIAL_ID_HERE",
+          "name": "Google Sheets OAuth2 API Credential"
+        }
+      },
+      "notes": "Retrieves rows from the 'Video Pool' sheet where the 'status' column is empty, indicating videos that need to be downloaded."
+    },
+    {
+      "parameters": {
+        "numberToReturn": 5
+      },
+      "id": "limitVideoDownloads",
+      "name": "Limit Video Downloads (5 Items)",
+      "type": "n8n-nodes-base.limit",
+      "typeVersion": 1,
+      "position": [750, 100],
+      "notes": "Limits the number of video download operations to 5 per hour to prevent IP bans from YouTube."
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "fileName",
+              "name": "fileName",
+              "value": "={{ new Date().getTime() + '_' + Math.random().toString(36).substring(2, 12) }}",
+              "type": "string"
+            },
+            {
+              "id": "folderName", 
+              "name": "folderName",
+              "value": "footage",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "generateVideoFileName",
+      "name": "Generate Video File Name",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.3,
+      "position": [1000, 100],
+      "notes": "Creates a unique file name for the downloaded video footage and defines the 'footage' subfolder."
+    },
+    {
+      "parameters": {
+        "command": "yt-dlp -f 'bestvideo[ext=mp4]' -o './footage/{{ $json.fileName }}.mp4' '{{ $node[\"Get Pending Videos\"].json.video_path }}'",
+        "options": {}
+      },
+      "id": "downloadVideoFootage",
+      "name": "Download Video Footage (yt-dlp)",
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [1250, 100],
+      "notes": "Executes yt-dlp to download the YouTube video from the 'video_path' URL as an MP4 file into the 'footage' directory. Requires yt-dlp installed in Docker."
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "documentId": "YOUR_GOOGLE_SHEET_ID_HERE",
+        "sheetName": "Video Pool",
+        "columnToMatchOn": "video_path",
+        "valueToMatchOn": "={{ $node[\"Get Pending Videos\"].json.video_path }}",
+        "fieldsUi": {
+          "values": [
+            {
+              "fieldId": "internal_path",
+              "fieldValue": "={{ './footage/' + $json.fileName + '.mp4' }}"
+            },
+            {
+              "fieldId": "status",
+              "fieldValue": "success"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "updateVideoPoolStatus",
+      "name": "Update Video Pool Status",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4,
+      "position": [1500, 100],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "YOUR_GOOGLE_SHEETS_CREDENTIAL_ID_HERE",
+          "name": "Google Sheets OAuth2 API Credential"
+        }
+      },
+      "notes": "Updates the 'Video Pool' sheet with the local internal path of the downloaded video and sets its status to 'success'."
+    },
+    {
+      "parameters": {
+        "operation": "readRows",
+        "documentId": "YOUR_GOOGLE_SHEET_ID_HERE",
+        "sheetName": "Music Pool",
+        "filtersUI": {
+          "values": [
+            {
+              "lookupColumn": "status",
+              "lookupValue": ""
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "getPendingMusic",
+      "name": "Get Pending Music",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4,
+      "position": [500, 300],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "YOUR_GOOGLE_SHEETS_CREDENTIAL_ID_HERE",
+          "name": "Google Sheets OAuth2 API Credential"
+        }
+      },
+      "notes": "Retrieves rows from the 'Music Pool' sheet where the 'status' column is empty, indicating music tracks that need to be downloaded."
+    },
+    {
+      "parameters": {
+        "numberToReturn": 5
+      },
+      "id": "limitMusicDownloads",
+      "name": "Limit Music Downloads (5 Items)",
+      "type": "n8n-nodes-base.limit",
+      "typeVersion": 1,
+      "position": [750, 300],
+      "notes": "Limits the number of music download operations to 5 per hour."
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "fileName",
+              "name": "fileName",
+              "value": "={{ new Date().getTime() + '_' + Math.random().toString(36).substring(2, 12) }}",
+              "type": "string"
+            },
+            {
+              "id": "folderName",
+              "name": "folderName", 
+              "value": "music",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "generateMusicFileName",
+      "name": "Generate Music File Name",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.3,
+      "position": [1000, 300],
+      "notes": "Creates a unique file name for the downloaded music track and defines the 'music' subfolder."
+    },
+    {
+      "parameters": {
+        "command": "yt-dlp -x --audio-format mp3 -o './music/{{ $json.fileName }}.mp3' '{{ $node[\"Get Pending Music\"].json.music_url }}'",
+        "options": {}
+      },
+      "id": "downloadMusicFootage",
+      "name": "Download Music Footage (yt-dlp)",
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [1250, 300],
+      "notes": "Executes yt-dlp to download the YouTube audio from the 'music_url' as an MP3 file into the 'music' directory. Requires yt-dlp installed in Docker."
+    },
+    {
+      "parameters": {
+        "operation": "update", 
+        "documentId": "YOUR_GOOGLE_SHEET_ID_HERE",
+        "sheetName": "Music Pool",
+        "columnToMatchOn": "music_url",
+        "valueToMatchOn": "={{ $node[\"Get Pending Music\"].json.music_url }}",
+        "fieldsUi": {
+          "values": [
+            {
+              "fieldId": "internal_path",
+              "fieldValue": "={{ './music/' + $json.fileName + '.mp3' }}"
+            },
+            {
+              "fieldId": "status",
+              "fieldValue": "success"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "updateMusicPoolStatus",
+      "name": "Update Music Pool Status", 
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4,
+      "position": [1500, 300],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "YOUR_GOOGLE_SHEETS_CREDENTIAL_ID_HERE",
+          "name": "Google Sheets OAuth2 API Credential"
+        }
+      },
+      "notes": "Updates the 'Music Pool' sheet with the local internal path of the downloaded music and sets its status to 'success'."
+    },
+    {
+      "parameters": {
+        "content": "## Download Workflow\n\nThis section downloads copyright-free video footage and background music from YouTube, stores them locally, and updates their status in Google Sheets.\n\n**Requirements:**\n- yt-dlp installed in Docker container\n- Google Sheets with Video Pool and Music Pool tabs",
+        "height": 160,
+        "width": 300
+      },
+      "id": "downloadNote",
+      "name": "Note - Download Workflow",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [1750, 200]
+    }
+  ],
+  "connections": {
+    "scheduleTriggerHourlyDownload": {
+      "main": [
+        [
+          {
+            "node": "getPendingVideos",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "getPendingMusic", 
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "getPendingVideos": {
+      "main": [
+        [
+          {
+            "node": "limitVideoDownloads",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "limitVideoDownloads": {
+      "main": [
+        [
+          {
+            "node": "generateVideoFileName",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "generateVideoFileName": {
+      "main": [
+        [
+          {
+            "node": "downloadVideoFootage",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "downloadVideoFootage": {
+      "main": [
+        [
+          {
+            "node": "updateVideoPoolStatus",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "getPendingMusic": {
+      "main": [
+        [
+          {
+            "node": "limitMusicDownloads",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "limitMusicDownloads": {
+      "main": [
+        [
+          {
+            "node": "generateMusicFileName",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "generateMusicFileName": {
+      "main": [
+        [
+          {
+            "node": "downloadMusicFootage",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "downloadMusicFootage": {
+      "main": [
+        [
+          {
+            "node": "updateMusicPoolStatus",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null
+}

@@ -1,0 +1,328 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "title": "Business Development Resume Schema",
+  "description": "Structured schema for generating business development professional resumes in LaTeX format",
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Full name of the candidate",
+      "example": "Nilisha Paul",
+      "maxLength": 100
+    },
+    "job_title": {
+      "type": "string",
+      "description": "Current or desired job title/position",
+      "example": "Business Development Executive",
+      "maxLength": 150
+    },
+    "phone": {
+      "type": "string",
+      "description": "Contact phone number(s), can include multiple numbers separated by /",
+      "example": "8981935726 / 6290748747",
+      "pattern": "^[0-9\\s/+-]+$",
+      "maxLength": 50
+    },
+    "email": {
+      "type": "string",
+      "description": "Professional email address",
+      "format": "email",
+      "example": "nilisha.paul.20@gmail.com",
+      "maxLength": 100
+    },
+    "address": {
+      "type": "string",
+      "description": "Complete postal address",
+      "example": "41, Dr.C.C.C.Road, Bhadreswar, Hooghly - 712124",
+      "maxLength": 200
+    },
+    "about_me": {
+      "type": "string",
+      "description": "Professional summary or about me section",
+      "example": "A candidate with excellent planning and implementation skills focused on continuous improvements and understanding requirements for positive impacts on clients' business objectives.",
+      "maxLength": 500
+    },
+    "experience": {
+      "type": "array",
+      "description": "Work experience history",
+      "items": {
+        "type": "object",
+        "properties": {
+          "company": {
+            "type": "string",
+            "description": "Company/organization name",
+            "example": "IEMA Research & Development Pvt. Ltd.",
+            "maxLength": 150
+          },
+          "title": {
+            "type": "string",
+            "description": "Job title/position held",
+            "example": "Business Development Executive",
+            "maxLength": 100
+          },
+          "duration": {
+            "type": "string",
+            "description": "Employment duration in format 'Month Year -- Month Year' or 'Month Year -- Present'",
+            "example": "March 2024 -- Present",
+            "pattern": "^[A-Za-z]+ \\d{4} -- ([A-Za-z]+ \\d{4}|Present)$",
+            "maxLength": 50
+          },
+          "location": {
+            "type": "string",
+            "description": "Work location (city, state/region)",
+            "example": "Kolkata, West Bengal",
+            "maxLength": 100
+          },
+          "highlights": {
+            "type": "array",
+            "description": "Key achievements and responsibilities",
+            "items": {
+              "type": "string",
+              "maxLength": 200
+            },
+            "minItems": 1,
+            "maxItems": 6
+          }
+        },
+        "required": ["company", "title", "duration", "highlights"],
+        "additionalProperties": false
+      },
+      "minItems": 1,
+      "maxItems": 8
+    },
+    "education": {
+      "type": "array",
+      "description": "Educational background",
+      "items": {
+        "type": "object",
+        "properties": {
+          "institution": {
+            "type": "string",
+            "description": "Educational institution name",
+            "example": "Institute of Engineering and Management",
+            "maxLength": 150
+          },
+          "degree": {
+            "type": "string",
+            "description": "Degree title and specialization",
+            "example": "Masters of Business Administration in Finance and Marketing",
+            "maxLength": 200
+          },
+          "duration": {
+            "type": "string",
+            "description": "Education duration in format 'Year -- Year'",
+            "example": "2022 -- 2024",
+            "pattern": "^\\d{4} -- \\d{4}$",
+            "maxLength": 20
+          },
+          "location": {
+            "type": "string",
+            "description": "Institution location (city, state/region)",
+            "example": "Kolkata, West Bengal",
+            "maxLength": 100
+          },
+          "gpa": {
+            "type": "string",
+            "description": "GPA or grade (optional)",
+            "example": "8.95",
+            "maxLength": 20
+          }
+        },
+        "required": ["institution", "degree", "duration"],
+        "additionalProperties": false
+      },
+      "minItems": 1,
+      "maxItems": 5
+    },
+    "skills": {
+      "type": "object",
+      "description": "Skills categorized by type",
+      "properties": {
+        "technical": {
+          "type": "array",
+          "description": "Technical tools and software proficiency",
+          "items": {
+            "type": "string",
+            "maxLength": 50
+          },
+          "example": ["MS Word", "MS Excel", "PowerPoint", "CRM Software"],
+          "maxItems": 15
+        },
+        "soft": {
+          "type": "array",
+          "description": "Soft skills and personal attributes",
+          "items": {
+            "type": "string",
+            "maxLength": 50
+          },
+          "example": ["Management Skills", "Creativity", "Digital Marketing", "Negotiation", "Critical Thinking", "Leadership"],
+          "maxItems": 15
+        },
+        "expertise": {
+          "type": "array",
+          "description": "Professional expertise and domain knowledge",
+          "items": {
+            "type": "string",
+            "maxLength": 50
+          },
+          "example": ["Business Development", "Financial Analysis", "Client Relationship Management"],
+          "maxItems": 10
+        }
+      },
+      "additionalProperties": false
+    },
+    "languages": {
+      "type": "array",
+      "description": "Language proficiency",
+      "items": {
+        "type": "object",
+        "properties": {
+          "language": {
+            "type": "string",
+            "description": "Language name",
+            "example": "English",
+            "maxLength": 30
+          },
+          "proficiency": {
+            "type": "string",
+            "description": "Proficiency level",
+            "enum": [
+              "Native Proficiency",
+              "Professional Proficiency", 
+              "Limited Working Proficiency",
+              "Elementary Proficiency",
+              "Conversational",
+              "Fluent",
+              "Basic"
+            ],
+            "example": "Professional Proficiency"
+          }
+        },
+        "required": ["language", "proficiency"],
+        "additionalProperties": false
+      },
+      "maxItems": 8
+    },
+    "certifications": {
+      "type": "array",
+      "description": "Professional certifications (optional)",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Certification name",
+            "maxLength": 150
+          },
+          "issuer": {
+            "type": "string",
+            "description": "Issuing organization",
+            "maxLength": 100
+          },
+          "date": {
+            "type": "string",
+            "description": "Date obtained",
+            "example": "2024",
+            "maxLength": 20
+          }
+        },
+        "required": ["name", "issuer"],
+        "additionalProperties": false
+      },
+      "maxItems": 10
+    },
+    "achievements": {
+      "type": "array",
+      "description": "Notable achievements and awards (optional)",
+      "items": {
+        "type": "string",
+        "maxLength": 200
+      },
+      "maxItems": 8
+    },
+    "fit_score": {
+      "type": "number",
+      "description": "Candidate fit score for the position (0-100)",
+      "minimum": 0,
+      "maximum": 100,
+      "example": 85
+    }
+  },
+  "required": [
+    "name",
+    "job_title", 
+    "phone",
+    "email",
+    "experience",
+    "education"
+  ],
+  "additionalProperties": false,
+  "examples": [
+    {
+      "name": "Nilisha Paul",
+      "job_title": "Business Development Executive",
+      "phone": "8981935726 / 6290748747",
+      "email": "nilisha.paul.20@gmail.com",
+      "address": "41, Dr.C.C.C.Road, Bhadreswar, Hooghly - 712124",
+      "about_me": "A candidate with excellent planning and implementation skills focused on continuous improvements and understanding requirements for positive impacts on clients' business objectives. Strong interpersonal skills with a light touch and thoughtful approach to clients and team members.",
+      "experience": [
+        {
+          "company": "IEMA Research & Development Pvt. Ltd.",
+          "title": "Business Development Executive",
+          "duration": "March 2024 -- Present",
+          "location": "Kolkata, West Bengal",
+          "highlights": [
+            "Responsible for receiving and managing article orders from international clients",
+            "Negotiated pricing, maintained client relationships, and ensured timely publication of content on the website",
+            "Worked closely with cross-functional teams to align business goals and client expectations"
+          ]
+        },
+        {
+          "company": "IDBI Capital Markets and Securities Ltd.",
+          "title": "Finance Intern",
+          "duration": "June 2023 -- August 2023",
+          "location": "Kolkata, West Bengal",
+          "highlights": [
+            "Monitored stock market trends and gained insights into financial markets",
+            "Supported research and analysis by understanding fundamentals of finance",
+            "Assisted senior analysts in preparing financial summaries and client reports"
+          ]
+        }
+      ],
+      "education": [
+        {
+          "institution": "Institute of Engineering and Management",
+          "degree": "Masters of Business Administration in Finance and Marketing",
+          "duration": "2022 -- 2024",
+          "location": "Kolkata, West Bengal"
+        },
+        {
+          "institution": "Institute of Engineering and Management",
+          "degree": "Bachelor of Business Administration",
+          "duration": "2018 -- 2021",
+          "location": "Kolkata, West Bengal"
+        }
+      ],
+      "skills": {
+        "technical": ["MS Word", "MS Excel"],
+        "soft": ["Management Skills", "Creativity", "Digital Marketing", "Negotiation", "Critical Thinking", "Leadership"],
+        "expertise": ["Business Development", "Financial Analysis", "Client Relationship Management"]
+      },
+      "languages": [
+        {
+          "language": "English",
+          "proficiency": "Professional Proficiency"
+        },
+        {
+          "language": "Hindi",
+          "proficiency": "Native Proficiency"
+        },
+        {
+          "language": "Bengali",
+          "proficiency": "Native Proficiency"
+        }
+      ],
+      "fit_score": 85
+    }
+  ]
+}

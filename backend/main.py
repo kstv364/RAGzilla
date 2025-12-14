@@ -108,6 +108,36 @@ async def generate_posts_route(
         return {"error": result["error"]}
     return {"posts": result["posts"]}
 
+@app.post("/generate-n8n-template")
+async def generate_n8n_template_route(
+    youtube_url: Optional[str] = Form(None),
+    text_input: Optional[str] = Form(None),
+    user_requirements: Optional[str] = Form("")
+):
+    logger.info(f"Received request to generate n8n template.")
+    
+    if not youtube_url and not text_input:
+        return {"error": "Either a YouTube URL or text input must be provided."}
+
+    from backend.ingest import get_youtube_transcript
+
+    content_for_template = ""
+    video_title = ""
+    
+    if youtube_url:
+        transcript_result = get_youtube_transcript(youtube_url)
+        if "transcript_text" in transcript_result:
+            content_for_template = transcript_result["transcript_text"]
+            video_title = transcript_result.get("video_title", "")
+        else:
+            return {"error": transcript_result.get("error", "Could not retrieve transcript from YouTube URL.")}
+    elif text_input:
+        content_for_template = text_input
+
+    from backend.llm_client import generate_n8n_template
+    result = generate_n8n_template(content_for_template, video_title, user_requirements)
+    return result
+
 @app.get("/ask")
 async def ask(query: str, collection_name: Optional[str] = "temp_docs"):
     return answer_query(query, collection_name)

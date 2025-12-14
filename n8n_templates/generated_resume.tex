@@ -1,0 +1,202 @@
+%-------------------------
+% Resume in Latex
+% Author : Jake Gutierrez
+% Based off of: https://github.com/sb2nov/resume
+% License : MIT
+%------------------------
+
+\documentclass[letterpaper,11pt]{article}
+
+\usepackage{latexsym}
+\usepackage[empty]{fullpage}
+\usepackage{titlesec}
+\usepackage{marvosym}
+\usepackage[usenames,dvipsnames]{color}
+\usepackage{verbatim}
+\usepackage{enumitem}
+\usepackage[hidelinks]{hyperref}
+\usepackage{fancyhdr}
+\usepackage[english]{babel}
+\usepackage{tabularx}
+\usepackage{fontawesome5}
+\usepackage{multicol}
+\setlength{\multicolsep}{-3.0pt}
+\setlength{\columnsep}{-1pt}
+\input{glyphtounicode}
+
+
+%----------FONT OPTIONS----------
+% sans-serif
+% \usepackage[sfdefault]{FiraSans}
+% \usepackage[sfdefault]{roboto}
+% \usepackage[sfdefault]{noto-sans}
+% \usepackage[default]{sourcesanspro}
+
+% serif
+% \usepackage{CormorantGaramond}
+% \usepackage{charter}
+
+
+\pagestyle{fancy}
+\fancyhf{} % clear all header and footer fields
+\fancyfoot{}
+\renewcommand{\headrulewidth}{0pt}
+\renewcommand{\footrulewidth}{0pt}
+
+% Adjust margins
+\addtolength{\oddsidemargin}{-0.6in}
+\addtolength{\evensidemargin}{-0.5in}
+\addtolength{\textwidth}{1.19in}
+\addtolength{\topmargin}{-.7in}
+\addtolength{\textheight}{1.4in}
+
+\urlstyle{same}
+
+\raggedbottom
+\raggedright
+\setlength{\tabcolsep}{0in}
+
+% Sections formatting
+\titleformat{\section}{
+  \vspace{-4pt}\scshape\raggedright\large\bfseries
+}{}{0em}{}[\color{black}\titlerule \vspace{-5pt}]
+
+% Ensure that generate pdf is machine readable/ATS parsable
+\pdfgentounicode=1
+
+%-------------------------
+% Custom commands
+\newcommand{\resumeItem}[1]{
+  \item\small{
+    {#1 \vspace{-2pt}}
+  }
+}
+
+\newcommand{\classesList}[4]{
+    \item\small{
+        {#1 #2 #3 #4 \vspace{-2pt}}
+  }
+}
+
+\newcommand{\resumeSubheading}[4]{
+  \vspace{-2pt}\item
+    \begin{tabular*}{1.0\textwidth}[t]{l@{\extracolsep{\fill}}r}
+      \textbf{#1} & \textbf{\small #2} \\
+      \textit{\small#3} & \textit{\small #4} \\
+    \end{tabular*}\vspace{-7pt}
+}
+
+\newcommand{\resumeSubSubheading}[2]{
+    \item
+    \begin{tabular*}{0.97\textwidth}{l@{\extracolsep{\fill}}r}
+      \textit{\small#1} & \textit{\small #2} \\
+    \end{tabular*}\vspace{-7pt}
+}
+
+\newcommand{\resumeProjectHeading}[2]{
+    \item
+    \begin{tabular*}{1.001\textwidth}{l@{\extracolsep{\fill}}r}
+      \small#1 & \textbf{\small #2}\\
+    \end{tabular*}\vspace{-7pt}
+}
+
+\newcommand{\resumeSubItem}[1]{\resumeItem{#1}\vspace{-4pt}}
+
+\renewcommand\labelitemi{$\vcenter{\hbox{\tiny$\bullet$}}$}
+\renewcommand\labelitemii{$\vcenter{\hbox{\tiny$\bullet$}}$}
+
+\newcommand{\resumeSubHeadingListStart}{\begin{itemize}[leftmargin=0.0in, label={}]}
+\newcommand{\resumeSubHeadingListEnd}{\end{itemize}}
+\newcommand{\resumeItemListStart}{\begin{itemize}}
+\newcommand{\resumeItemListEnd}{\end{itemize}\vspace{-5pt}}
+
+%-------------------------------------------
+%%%%%%  RESUME STARTS HERE  %%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+\begin{document}
+
+%----------HEADING----------
+\begin{center}
+    {\Huge \scshape Kaustav Chanda} \\ \vspace{1pt}
+    Senior Software Engineer \\ \vspace{1pt}
+    \small \raisebox{-0.1\height}\faPhone\ 9748802973 ~ \href{mailto:kaustav.chanda.work@gmail.com}{\raisebox{-0.2\height}\faEnvelope\  \underline{kaustav.chanda.work@gmail.com}} ~ 
+    \href{https://linkedin.com/in/kaustav-chanda}{\raisebox{-0.2\height}\faLinkedin\ \underline{/LinkedIn}}  ~
+    \href{https://github.com/kstv364}{\raisebox{-0.2\height}\faGithub\ \underline{/kstv364}} ~
+     \href{https://medium.com/@kstvkmrchanda2}{\raisebox{-0.2\height}\faMedium\ \underline{/medium}}  ~
+     \href{https://www.hackerrank.com/profile/Kaustav97}{\raisebox{-0.2\height}\faHackerrank\ \underline{/Kaustav97}} ~
+    \vspace{-8pt}
+\end{center}
+
+%-----------EXPERIENCE-----------
+\section{Experience}
+  \resumeSubHeadingListStart
+
+    \resumeSubheading
+      {Hyland Software}{Oct 2024  --  Present}
+      {Developer 2, Content Federation Services}{Kolkata, West Bengal}
+      \resumeItemListStart
+        \resumeItem{Developed a highly scalable WebSocket broker application to federate information exchange across multiple on-prem content management systems, leveraging a plugin-based architecture for seamless integration and extensibility.}
+        \resumeItem{Developed a test harness for the above application, as a proxy for Amazon API Gateway reducing endpoint validation time by 40\%, enabling faster debugging and integration testing.}
+        \resumeItem{Refactored a major portion of the broker WebSocket application, improving code maintainability and scalability using Factory, Adapter, and Dependency Injection design patterns.}
+        \resumeItem{Implemented unit tests covering 100\% of critical business logic and achieving \textgreater{}85\% overall test coverage, enhancing system reliability and reducing production bugs by 30\%.}
+        \resumeItem{Designed and implemented a Proof of Concept (PoC) for streaming large files (\textgreater{}20GB) between AWS S3 and on-prem servers, achieving seamless content federation with a 20\% improvement in transfer efficiency.}
+        \resumeItem{Automated CI/CD pipelines using GitHub Actions, improving deployment frequency by 3x, integrating SonarCloud scanning, automated tests, and deployments to sandbox and staging environments.}
+      \resumeItemListEnd
+
+    \resumeSubheading
+      {Hyland Software}{Feb 2022  --  Sep 2024}
+      {Developer 2, Onbase Engineering}{Kolkata, West Bengal}
+      \resumeItemListStart
+        \resumeItem{Developed PDF Support feature for legacy web based OnBase viewer bringing native PDF functionalities such as text-selection, copying text, hyperlink support, bookmark support generating 3000+ customer interest points in Hyland Community.}
+        \resumeItem{Modernized development workflow for legacy web application by using Typescript and Webpack tooling promoting test-driven-development approach.}
+        \resumeItem{Containerized legacy web application and automated the process of creating Docker images from latest nightly build and continuous deployment using Jenkins reducing build set up time by around 75\%.}
+        \resumeItem{Utilized Jenkins and Vagrant to provide a continuous integration service in order to automate the entire process of provisioning a virtual machine, installing the latest nightly build and test files, running the tests, generating a report of the results and cleaning up the resources once per day.}
+        \resumeItem{Resolved over 30 accessibility defects following WCAG Conformance guidelines diverse audiences achieving accessibility backlog reduction by 13\%.}
+      \resumeItemListEnd
+
+    \resumeSubheading
+      {Hyland Software}{Aug 2020  --  Jan 2022}
+      {Developer 1, Onbase Engineering}{Kolkata, West Bengal}
+      \resumeItemListStart
+        \resumeItem{Contributed to the development of Hyland's modern Angular platform for OnBase, creating shareable components supporting text selection, text search, bookmarking capabilities integrated using GraphQL and REST endpoints.}
+        \resumeItem{Developed full fledged pre-import web-viewer module for showing preview of documents, supporting page manipuation operations such as rotate, reorder, delete before importing to OnBase.}
+        \resumeItem{Integrated native desktop functionalities such as scanning and printing through virtual print driver in web application enabling capturing documents using the above.}
+        \resumeItem{Wrote UI automation and Unit tests using Protractor, Jest, Selenium and increased code coverage to impressive 73\%.}
+      \resumeItemListEnd
+
+  \resumeSubHeadingListEnd
+\vspace{-14pt}
+
+%
+%-----------PROGRAMMING SKILLS-----------
+\section{Technical Skills}
+ \begin{itemize}[leftmargin=0.15in, label={}]
+    \small{\item{
+     \textbf{Languages}{: C\#, TypeScript, JavaScript, SQL Server} \\
+     \textbf{Developer Tools}{: Docker, Jenkins, GitHub Actions} \\
+     \textbf{Technologies/Frameworks}{: ASP.NET, Angular, Kubernetes, REST APIs, GraphQL, WebSocket, Test-Driven Development, CI/CD, Design Patterns, Unit Testing, AWS S3, SonarCloud} \\
+    }}
+ \end{itemize}
+ \vspace{-16pt}
+
+ 
+%-----------EDUCATION-----------
+\section{Education}
+  \resumeSubHeadingListStart
+    \resumeSubheading
+      {Heritage Institute of Technology (DGPA - 8.95) }{July 2016 -- May 2020}
+      {Bachelor of Technology in Computer Science and Engineering} {Kolkata, West Bengal} \\
+   
+  \resumeSubHeadingListEnd
+
+%-----------INVOLVEMENT---------------
+\section{Achievements}
+    \resumeItemListStart
+        \resumeSubItem{Won the Hyland SPOT award 2021, 2023.}
+        \resumeSubItem{NASA Space Apps Challenge 2017 Finalist.}
+        \resumeSubItem{School Topper in Mathematics}
+        \resumeSubItem{Candidate Fit Score: 92\%}
+    \resumeItemListEnd
+
+\end{document}

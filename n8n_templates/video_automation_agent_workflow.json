@@ -1,0 +1,798 @@
+{
+  "name": "Video Automation Agent - Complete Workflow",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 9 * * 1"
+            }
+          ]
+        }
+      },
+      "id": "schedule_trigger",
+      "name": "Schedule Trigger",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        240,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "values": {
+          "string": [
+            {
+              "name": "video_keywords",
+              "value": "stoic philosophy, motivation, wisdom"
+            },
+            {
+              "name": "number_of_images",
+              "value": "2"
+            },
+            {
+              "name": "time_to_publish",
+              "value": "{{ $now }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "video_information_tool",
+      "name": "Video Information Tool",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.2,
+      "position": [
+        460,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "model": "gpt-4",
+        "options": {},
+        "prompt": "Generate a compelling stoic philosophy video based on these keywords: {{ $json.video_keywords }}.\n\nCreate:\n1. A catchy video title (max 60 characters)\n2. An engaging story/script (30-60 seconds when spoken)\n3. 2-3 relevant Marcus Aurelius quotes\n\nMake it inspiring and suitable for social media shorts. Focus on practical wisdom and life lessons.\n\nFormat as JSON:\n{\n  \"title\": \"video title\",\n  \"script\": \"full script text\",\n  \"quotes\": [\"quote1\", \"quote2\", \"quote3\"]\n}"
+      },
+      "id": "idea_script_generator",
+      "name": "Idea and Script AI Generator",
+      "type": "n8n-nodes-base.openAi",
+      "typeVersion": 1.3,
+      "position": [
+        680,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "model": "gpt-4",
+        "options": {},
+        "prompt": "Create an engaging video description for YouTube/TikTok based on:\n\nTitle: {{ $json.title }}\nScript: {{ $json.script }}\nQuotes: {{ $json.quotes }}\nKeywords: {{ $('Video Information Tool').item.json.video_keywords }}\n\nInclude:\n- Hook in first line\n- Key takeaways\n- Relevant hashtags\n- Call to action\n\nKeep it under 200 characters for optimal social media performance."
+      },
+      "id": "description_agent",
+      "name": "Description Agent",
+      "type": "n8n-nodes-base.openAi",
+      "typeVersion": 1.3,
+      "position": [
+        900,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Format video title for file system\nconst title = $input.first().json.title;\nconst formattedTitle = title.replace(/\\s+/g, '_').replace(/[^a-zA-Z0-9_]/g, '');\n\nreturn {\n  formatted_title: formattedTitle,\n  original_title: title\n};"
+      },
+      "id": "file_name_formatting",
+      "name": "Code Node (File Name Formatting)",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1120,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": "YOUR_GOOGLE_SHEET_ID",
+        "sheetName": "Video_Tracking",
+        "columnToMatchOn": "timestamp",
+        "valueInputMode": "defineBelow",
+        "valuesToSend": {
+          "timestamp": "={{ $now }}",
+          "video_title": "={{ $('Idea and Script AI Generator').item.json.title }}",
+          "keywords": "={{ $('Video Information Tool').item.json.video_keywords }}",
+          "description": "={{ $('Description Agent').item.json.message.content }}",
+          "script": "={{ $('Idea and Script AI Generator').item.json.script }}",
+          "quotes": "={{ $('Idea and Script AI Generator').item.json.quotes }}",
+          "number_of_images": "={{ $('Video Information Tool').item.json.number_of_images }}",
+          "time_to_publish": "={{ $('Video Information Tool').item.json.time_to_publish }}",
+          "status": "generating"
+        }
+      },
+      "id": "google_sheets_append",
+      "name": "Google Sheets Append",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.4,
+      "position": [
+        1340,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "url": "http://localhost:5002/api/tts",
+        "options": {
+          "bodyContentType": "json",
+          "jsonBody": "{\n  \"model_name\": \"tts_models/en/ljspeech/tacotron2-DDC\",\n  \"text\": \"{{ $('Idea and Script AI Generator').item.json.script }}\",\n  \"speaker_name\": \"default_male\",\n  \"language_name\": \"en\"\n}",
+          "headers": {
+            "Content-Type": "application/json"
+          }
+        }
+      },
+      "id": "voice_generation_coqui",
+      "name": "Voice Generation Agent (Coqui TTS)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        680,
+        500
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "upload",
+        "fileId": "{{ $json.audio_path }}",
+        "driveId": "YOUR_GOOGLE_DRIVE_ID",
+        "folderId": "YOUR_VOICE_OVERS_FOLDER_ID",
+        "options": {
+          "fileName": "{{ $('Code Node (File Name Formatting)').item.json.formatted_title }}_voiceover.wav"
+        }
+      },
+      "id": "google_drive_upload_voice",
+      "name": "Google Drive Upload (Voiceover)",
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        900,
+        500
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "write",
+        "fileName": "data/videos/voice_overs/{{ $('Code Node (File Name Formatting)').item.json.formatted_title }}_voiceover.wav",
+        "data": "={{ $('Voice Generation Agent (Coqui TTS)').item.json.audio_data }}"
+      },
+      "id": "local_save_voiceover",
+      "name": "Local Save (Voiceover)",
+      "type": "n8n-nodes-base.writeFile",
+      "typeVersion": 1,
+      "position": [
+        1120,
+        500
+      ]
+    },
+    {
+      "parameters": {
+        "model": "gpt-4",
+        "options": {},
+        "prompt": "Analyze this voiceover script and generate {{ $('Video Information Tool').item.json.number_of_images }} specific, detailed image prompts for video generation:\n\nScript: {{ $('Idea and Script AI Generator').item.json.script }}\n\nCreate prompts that:\n- Are visually compelling and cinematic\n- Match the mood and theme of stoic philosophy\n- Work well for short-form video content\n- Include specific visual details (lighting, composition, style)\n\nReturn each prompt on a new line, numbered 1-{{ $('Video Information Tool').item.json.number_of_images }}."
+      },
+      "id": "image_generation_prompts_agent",
+      "name": "Image Generation Prompts Agent",
+      "type": "n8n-nodes-base.openAi",
+      "typeVersion": 1.3,
+      "position": [
+        1340,
+        500
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Split image prompts into individual items\nconst prompts = $input.first().json.message.content;\nconst promptArray = prompts.split('\\n').filter(line => line.trim().length > 0);\n\nconst results = [];\npromptArray.forEach((prompt, index) => {\n  // Remove numbering if present\n  const cleanPrompt = prompt.replace(/^\\d+\\.\\s*/, '').trim();\n  if (cleanPrompt) {\n    results.push({\n      prompt_index: index + 1,\n      image_prompt: cleanPrompt\n    });\n  }\n});\n\nreturn results;"
+      },
+      "id": "split_image_prompts",
+      "name": "Code Node (Split Image Prompts)",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1560,
+        500
+      ]
+    },
+    {
+      "parameters": {
+        "url": "http://host.docker.internal:8188/prompt",
+        "options": {
+          "bodyContentType": "json",
+          "jsonBody": "{\n  \"prompt\": {\n    \"3\": {\n      \"inputs\": {\n        \"seed\": 42,\n        \"steps\": 20,\n        \"cfg\": 8,\n        \"sampler_name\": \"euler\",\n        \"scheduler\": \"normal\",\n        \"denoise\": 1,\n        \"model\": [\"4\", 0],\n        \"positive\": [\"6\", 0],\n        \"negative\": [\"7\", 0],\n        \"latent_image\": [\"5\", 0]\n      },\n      \"class_type\": \"KSampler\"\n    },\n    \"4\": {\n      \"inputs\": {\n        \"ckpt_name\": \"flux1-dev-fp8.safetensors\"\n      },\n      \"class_type\": \"CheckpointLoaderSimple\"\n    },\n    \"5\": {\n      \"inputs\": {\n        \"width\": 1024,\n        \"height\": 1024,\n        \"batch_size\": 1\n      },\n      \"class_type\": \"EmptyLatentImage\"\n    },\n    \"6\": {\n      \"inputs\": {\n        \"text\": \"{{ $json.image_prompt }}, cinematic lighting, high quality, detailed\",\n        \"clip\": [\"4\", 1]\n      },\n      \"class_type\": \"CLIPTextEncode\"\n    },\n    \"7\": {\n      \"inputs\": {\n        \"text\": \"blurry, low quality, distorted, ugly\",\n        \"clip\": [\"4\", 1]\n      },\n      \"class_type\": \"CLIPTextEncode\"\n    },\n    \"8\": {\n      \"inputs\": {\n        \"samples\": [\"3\", 0],\n        \"vae\": [\"4\", 2]\n      },\n      \"class_type\": \"VAEDecode\"\n    },\n    \"9\": {\n      \"inputs\": {\n        \"filename_prefix\": \"{{ $('Code Node (File Name Formatting)').item.json.formatted_title }}_img_{{ $json.prompt_index }}\",\n        \"images\": [\"8\", 0]\n      },\n      \"class_type\": \"SaveImage\"\n    }\n  }\n}",
+          "headers": {
+            "Content-Type": "application/json"
+          }
+        }
+      },
+      "id": "comfy_ui_image_generation",
+      "name": "Comfy UI Image Generation",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        1780,
+        500
+      ]
+    },
+    {
+      "parameters": {
+        "amount": 15,
+        "unit": "seconds"
+      },
+      "id": "wait_for_image_generation",
+      "name": "Wait Node (Image Generation)",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        2000,
+        500
+      ]
+    },
+    {
+      "parameters": {
+        "url": "http://host.docker.internal:8188/history/{{ $('Comfy UI Image Generation').item.json.prompt_id }}",
+        "options": {
+          "headers": {
+            "Content-Type": "application/json"
+          }
+        }
+      },
+      "id": "image_information_retrieval",
+      "name": "Image Information Retrieval",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        2220,
+        500
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Extract image URLs from ComfyUI response\nconst historyData = $input.first().json;\nconst promptId = Object.keys(historyData)[0];\nconst outputs = historyData[promptId].outputs;\n\nlet imageUrls = [];\nfor (const nodeId in outputs) {\n  if (outputs[nodeId].images) {\n    outputs[nodeId].images.forEach(img => {\n      imageUrls.push({\n        filename: img.filename,\n        local_url: `http://host.docker.internal:8188/view?filename=${img.filename}`,\n        type: img.type\n      });\n    });\n  }\n}\n\nreturn imageUrls;"
+      },
+      "id": "clean_image_urls",
+      "name": "Code Node (Clean Image URLs)",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2440,
+        500
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "download",
+        "url": "{{ $json.local_url }}",
+        "fileName": "data/videos/images/{{ $json.filename }}"
+      },
+      "id": "local_save_images",
+      "name": "Local Save (Images)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        2660,
+        500
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "upload",
+        "fileId": "data/videos/images/{{ $json.filename }}",
+        "driveId": "YOUR_GOOGLE_DRIVE_ID",
+        "folderId": "YOUR_IMAGES_FOLDER_ID"
+      },
+      "id": "google_drive_upload_images",
+      "name": "Google Drive Upload (Images)",
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        2880,
+        500
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Calculate audio length from voiceover file\nconst fs = require('fs');\nconst { execSync } = require('child_process');\n\nconst audioPath = `data/videos/voice_overs/${$('Code Node (File Name Formatting)').item.json.formatted_title}_voiceover.wav`;\n\ntry {\n  // Use ffprobe to get audio duration\n  const duration = execSync(`ffprobe -v quiet -show_entries format=duration -of csv=p=0 \"${audioPath}\"`);\n  const audioLength = parseFloat(duration.toString().trim());\n  \n  return {\n    audio_length_seconds: audioLength,\n    audio_path: audioPath\n  };\n} catch (error) {\n  return {\n    audio_length_seconds: 15, // fallback duration\n    audio_path: audioPath,\n    error: error.message\n  };\n}"
+      },
+      "id": "audio_length_calculator",
+      "name": "Audio Length Calculator",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1340,
+        700
+      ]
+    },
+    {
+      "parameters": {
+        "values": {
+          "string": [
+            {
+              "name": "video_name",
+              "value": "={{ $('Code Node (File Name Formatting)').item.json.formatted_title }}"
+            }
+          ]
+        }
+      },
+      "id": "video_name_node",
+      "name": "Video Name Node",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.2,
+      "position": [
+        1560,
+        700
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Calculate video length per image\nconst audioLength = $('Audio Length Calculator').item.json.audio_length_seconds;\nconst numImages = parseInt($('Video Information Tool').item.json.number_of_images);\n\nconst durationPerImage = Math.ceil(audioLength / numImages);\n\nreturn {\n  total_audio_length: audioLength,\n  number_of_images: numImages,\n  duration_per_image: durationPerImage,\n  video_name: $('Video Name Node').item.json.video_name\n};"
+      },
+      "id": "video_length_calculator",
+      "name": "Video Length Calculator",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1780,
+        700
+      ]
+    },
+    {
+      "parameters": {
+        "command": "ffmpeg -y -loop 1 -t {{ $json.duration_per_image }} -i data/videos/images/{{ $('Code Node (Clean Image URLs)').item.json[0].filename }} -loop 1 -t {{ $json.duration_per_image }} -i data/videos/images/{{ $('Code Node (Clean Image URLs)').item.json[1].filename }} -i {{ $('Audio Length Calculator').item.json.audio_path }} -filter_complex \"[0:v]fade=t=in:st=0:d=1,vignette=angle=PI/4:radius=0.5[v0];[1:v]fade=t=in:st={{ $json.duration_per_image }}:d=1,vignette=angle=PI/4:radius=0.5[v1];[v0][v1]concat=n=2:v=1:a=0[outv]\" -map \"[outv]\" -map 2:a -c:v libx264 -c:a aac -pix_fmt yuv420p -shortest data/videos/videos/{{ $json.video_name }}_raw.mp4"
+      },
+      "id": "video_renderer_ffmpeg",
+      "name": "Video Renderer (FFmpeg)",
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [
+        2000,
+        700
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "write",
+        "fileName": "data/videos/videos/{{ $('Video Length Calculator').item.json.video_name }}_raw.mp4",
+        "data": "={{ $json.stdout }}"
+      },
+      "id": "local_save_video",
+      "name": "Local Save (Video)",
+      "type": "n8n-nodes-base.writeFile",
+      "typeVersion": 1,
+      "position": [
+        2220,
+        700
+      ]
+    },
+    {
+      "parameters": {
+        "bucket": "raw-videos",
+        "fileName": "{{ $('Video Length Calculator').item.json.video_name }}_raw.mp4",
+        "fileData": "data/videos/videos/{{ $('Video Length Calculator').item.json.video_name }}_raw.mp4",
+        "additionalFields": {
+          "contentType": "video/mp4"
+        }
+      },
+      "id": "s3_upload_raw_video",
+      "name": "S3 Upload (Raw Video - MiniIO)",
+      "type": "n8n-nodes-base.s3",
+      "typeVersion": 1,
+      "position": [
+        2440,
+        700
+      ]
+    },
+    {
+      "parameters": {
+        "url": "http://localhost:5002/api/subtitle",
+        "options": {
+          "bodyContentType": "json",
+          "jsonBody": "{\n  \"video_url\": \"{{ $json.Location }}\",\n  \"subtitle_style\": \"word_by_word\",\n  \"font_family\": \"Arial Bold\",\n  \"font_color\": \"white\",\n  \"font_size\": 48,\n  \"outline_color\": \"black\",\n  \"outline_width\": 2\n}",
+          "headers": {
+            "Content-Type": "application/json"
+          }
+        }
+      },
+      "id": "subtitle_generation_agent",
+      "name": "Subtitle Generation Agent (Coqui TTS)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        2660,
+        700
+      ]
+    },
+    {
+      "parameters": {
+        "bucket": "captioned-videos",
+        "fileName": "{{ $('Video Length Calculator').item.json.video_name }}_captioned.mp4",
+        "fileData": "={{ $json.video_with_subtitles }}",
+        "additionalFields": {
+          "contentType": "video/mp4"
+        }
+      },
+      "id": "s3_upload_captioned_video",
+      "name": "S3 Upload (Captioned Video - MiniIO)",
+      "type": "n8n-nodes-base.s3",
+      "typeVersion": 1,
+      "position": [
+        2880,
+        700
+      ]
+    },
+    {
+      "parameters": {
+        "platform": "youtube",
+        "title": "={{ $('Idea and Script AI Generator').item.json.title }}",
+        "description": "={{ $('Description Agent').item.json.message.content }}",
+        "videoFile": "={{ $json.Location }}",
+        "additionalFields": {
+          "tags": "stoic,philosophy,motivation,wisdom,shorts",
+          "category": "Education",
+          "privacy": "public"
+        }
+      },
+      "id": "youtube_upload_node",
+      "name": "YouTube/TikTok/Instagram Upload Node",
+      "type": "n8n-nodes-base.uploadPost",
+      "typeVersion": 1,
+      "position": [
+        3100,
+        700
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "upload",
+        "fileId": "={{ $('S3 Upload (Captioned Video - MiniIO)').item.json.Location }}",
+        "driveId": "YOUR_GOOGLE_DRIVE_ID",
+        "folderId": "YOUR_FINAL_RENDERS_FOLDER_ID",
+        "options": {
+          "fileName": "{{ $('Video Length Calculator').item.json.video_name }}_final.mp4"
+        }
+      },
+      "id": "google_drive_upload_final",
+      "name": "Google Drive Upload (Final Render)",
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        3320,
+        700
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "documentId": "YOUR_GOOGLE_SHEET_ID",
+        "sheetName": "Video_Tracking",
+        "columnToMatchOn": "video_title",
+        "valueToMatchOn": "={{ $('Idea and Script AI Generator').item.json.title }}",
+        "valuesToSend": {
+          "status": "published",
+          "youtube_url": "={{ $('YouTube/TikTok/Instagram Upload Node').item.json.url }}",
+          "final_video_url": "={{ $json.webViewLink }}",
+          "publish_date": "={{ $now }}"
+        }
+      },
+      "id": "google_sheets_update_status",
+      "name": "Google Sheets Update (Status)",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.4,
+      "position": [
+        3540,
+        700
+      ]
+    }
+  ],
+  "connections": {
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "Video Information Tool",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Video Information Tool": {
+      "main": [
+        [
+          {
+            "node": "Idea and Script AI Generator",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Idea and Script AI Generator": {
+      "main": [
+        [
+          {
+            "node": "Description Agent",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Voice Generation Agent (Coqui TTS)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Description Agent": {
+      "main": [
+        [
+          {
+            "node": "Code Node (File Name Formatting)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code Node (File Name Formatting)": {
+      "main": [
+        [
+          {
+            "node": "Google Sheets Append",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Voice Generation Agent (Coqui TTS)": {
+      "main": [
+        [
+          {
+            "node": "Google Drive Upload (Voiceover)",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Local Save (Voiceover)",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Image Generation Prompts Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Local Save (Voiceover)": {
+      "main": [
+        [
+          {
+            "node": "Audio Length Calculator",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Image Generation Prompts Agent": {
+      "main": [
+        [
+          {
+            "node": "Code Node (Split Image Prompts)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code Node (Split Image Prompts)": {
+      "main": [
+        [
+          {
+            "node": "Comfy UI Image Generation",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Comfy UI Image Generation": {
+      "main": [
+        [
+          {
+            "node": "Wait Node (Image Generation)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait Node (Image Generation)": {
+      "main": [
+        [
+          {
+            "node": "Image Information Retrieval",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Image Information Retrieval": {
+      "main": [
+        [
+          {
+            "node": "Code Node (Clean Image URLs)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code Node (Clean Image URLs)": {
+      "main": [
+        [
+          {
+            "node": "Local Save (Images)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Local Save (Images)": {
+      "main": [
+        [
+          {
+            "node": "Google Drive Upload (Images)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Audio Length Calculator": {
+      "main": [
+        [
+          {
+            "node": "Video Name Node",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Video Name Node": {
+      "main": [
+        [
+          {
+            "node": "Video Length Calculator",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Video Length Calculator": {
+      "main": [
+        [
+          {
+            "node": "Video Renderer (FFmpeg)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Video Renderer (FFmpeg)": {
+      "main": [
+        [
+          {
+            "node": "Local Save (Video)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Local Save (Video)": {
+      "main": [
+        [
+          {
+            "node": "S3 Upload (Raw Video - MiniIO)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "S3 Upload (Raw Video - MiniIO)": {
+      "main": [
+        [
+          {
+            "node": "Subtitle Generation Agent (Coqui TTS)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Subtitle Generation Agent (Coqui TTS)": {
+      "main": [
+        [
+          {
+            "node": "S3 Upload (Captioned Video - MiniIO)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "S3 Upload (Captioned Video - MiniIO)": {
+      "main": [
+        [
+          {
+            "node": "YouTube/TikTok/Instagram Upload Node",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Google Drive Upload (Final Render)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "YouTube/TikTok/Instagram Upload Node": {
+      "main": [
+        [
+          {
+            "node": "Google Sheets Update (Status)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Drive Upload (Final Render)": {
+      "main": [
+        [
+          {
+            "node": "Google Sheets Update (Status)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "tags": [
+    {
+      "createdAt": "2025-11-03T10:00:00.000Z",
+      "updatedAt": "2025-11-03T10:00:00.000Z",
+      "id": "video-automation",
+      "name": "Video Automation"
+    }
+  ],
+  "triggerCount": 1,
+  "updatedAt": "2025-11-03T10:00:00.000Z",
+  "versionId": "1"
+}

@@ -228,9 +228,99 @@ with gr.Blocks() as linkedin_post_interface:
         outputs=linkedin_post_output
     )
 
+# n8n Template Generator Interface
+with gr.Blocks() as n8n_template_interface:
+    gr.Markdown("## Generate n8n Workflow Template from Video Content")
+    gr.Markdown("Create automation workflows based on processes and concepts discussed in videos.")
+    
+    youtube_url_input_n8n = gr.Textbox(
+        label="YouTube URL (Optional)", 
+        placeholder="Enter YouTube URL or provide text below"
+    )
+    text_input_n8n = gr.Textbox(
+        label="Text Input (Optional)", 
+        lines=5, 
+        placeholder="Enter text directly if no YouTube URL"
+    )
+    user_requirements_n8n = gr.Textbox(
+        label="Specific Requirements (Optional)", 
+        lines=3,
+        placeholder="e.g., 'Focus on data processing automation', 'Include email notifications', 'Connect to specific APIs'"
+    )
+    
+    generate_n8n_button = gr.Button("Generate n8n Template")
+    
+    # Output components
+    with gr.Row():
+        with gr.Column():
+            n8n_template_status = gr.Markdown("### Status")
+            n8n_validation_status = gr.Markdown("")
+            n8n_file_info = gr.Markdown("")
+        
+        with gr.Column():
+            n8n_download_info = gr.Markdown("### Instructions")
+            gr.Markdown("""
+            **How to use the generated template:**
+            1. Copy the JSON content below
+            2. Open your n8n instance
+            3. Go to Workflows → Import from JSON
+            4. Paste the JSON and import
+            5. Review and customize the workflow as needed
+            """)
+    
+    n8n_template_output = gr.Code(
+        label="Generated n8n Template (JSON)",
+        language="json",
+        lines=20
+    )
+
+    def generate_n8n_template_frontend(youtube_url, text_input, user_requirements):
+        payload = {}
+        if youtube_url:
+            payload["youtube_url"] = youtube_url
+        elif text_input:
+            payload["text_input"] = text_input
+        else:
+            return "❌ **Error**: Either YouTube URL or text input must be provided.", "", "", ""
+
+        if user_requirements:
+            payload["user_requirements"] = user_requirements
+
+        try:
+            response = requests.post(f"{API_BASE}/generate-n8n-template", data=payload)
+            result = response.json()
+            
+            if "error" in result:
+                return f"❌ **Error**: {result['error']}", "", "", ""
+            
+            # Status information
+            video_title = result.get("video_title", "")
+            is_valid_json = result.get("is_valid_json", False)
+            file_path = result.get("file_path", "")
+            template_content = result.get("template", "")
+            
+            status_msg = f"✅ **Success**: n8n template generated successfully"
+            if video_title:
+                status_msg += f" for video: '{video_title}'"
+            
+            validation_msg = "✅ **Valid JSON**: Template is ready to import" if is_valid_json else "⚠️ **Invalid JSON**: Please review and fix the template before importing"
+            
+            file_msg = f"📁 **File saved**: {file_path}" if file_path else ""
+            
+            return status_msg, validation_msg, file_msg, template_content
+            
+        except Exception as e:
+            return f"❌ **Error**: Failed to generate template - {str(e)}", "", "", ""
+
+    generate_n8n_button.click(
+        fn=generate_n8n_template_frontend,
+        inputs=[youtube_url_input_n8n, text_input_n8n, user_requirements_n8n],
+        outputs=[n8n_template_status, n8n_validation_status, n8n_file_info, n8n_template_output]
+    )
+
 app = gr.TabbedInterface(
-    [pdf_upload_interface, youtube_ingest_interface, qa_interface, humanizer_interface, post_generation_interface, linkedin_post_interface],
-    ["Upload PDF", "Ingest YouTube", "Ask Questions", "Humanize Article", "Generate AI/ML Posts", "Generate LinkedIn Post"]
+    [pdf_upload_interface, youtube_ingest_interface, qa_interface, humanizer_interface, post_generation_interface, linkedin_post_interface, n8n_template_interface],
+    ["Upload PDF", "Ingest YouTube", "Ask Questions", "Humanize Article", "Generate AI/ML Posts", "Generate LinkedIn Post", "Generate n8n Template"]
 )
 
 if __name__ == "__main__":
